@@ -4,3 +4,9 @@ version = "0.1.0"
 authors = ["delma <delma@del.ma>"]
 
 [dependencies]
+nalgebra = "=0.8.*"
+image = "=0.10.*"
+glium = "=0.15.*"
+rusttype = "0.2.*"
+unicode-normalization = "=0.1.2"
+daggy = "0.4.1"
