@@ -3,9 +3,11 @@ extern crate glium;
 extern crate daggy;
 extern crate rusttype;
 extern crate unicode_normalization;
+extern crate num;
 extern crate nalgebra;
 extern crate image;
 extern crate arrayvec;
+extern crate quantum_circuit_wars;
 
 use glium::{DisplayBuild, Program};
 use glium::glutin::WindowBuilder;
@@ -19,10 +21,10 @@ type Vect = nalgebra::Vector2<f32>;
 mod events;
 mod graphics;
 mod math;
+mod circuit;
 
 pub struct Node {
     pos: Vect,
-    shader: RefCell<Option<Program>>,
     inputs: RefCell<Vec<Vect>>,
     outputs: RefCell<Vec<Vect>>,
 }
@@ -31,7 +33,6 @@ impl Node {
     fn new(pos: Vect) -> Node {
         Node {
             pos: pos,
-            shader: RefCell::new(None),
             inputs: RefCell::new(vec![]),
             outputs: RefCell::new(vec![]),
         }

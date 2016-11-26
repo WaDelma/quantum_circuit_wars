@@ -7,12 +7,9 @@ use glium::draw_parameters::BlendingFunction::*;
 use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue};
 
 use nalgebra::Norm;
-// use texturegen::GeneratorView;
-// use texturegen::process::{Process, Setting, BlendType};
 
 use {SimContext, Selection, Node, Vect};
 use super::{RenderContext, Vertex, vert};
-//use State::*;
 use math::*;
 
 fn input_pos(gen: &Generator<Node>, input: Port<u32>, _size: f32) -> Vect {
@@ -79,13 +76,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         draw(&data.inputs.borrow());
     }
     let mut lines = Vec::with_capacity(world.connections());
-    // if let Some(AddingEdge) = ctx.state {
-    //     if let Some(Selection::Output(trg)) = ctx.selected {
-    //         let src = output_pos(&gen, trg, ctx.thingy_size);
-    //         let trg = Vect::new(ctx.mouse_pos.x, -ctx.mouse_pos.y);
-    //         add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
-    //     }
-    // }
     for (src, trg) in world.iter_connections() {
         let src = output_pos(&world, src, ctx.thingy_size);
         let trg = input_pos(&world, trg, ctx.thingy_size);
@@ -101,63 +91,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     };
     let program = rctx.programs.get("plain").unwrap();
     target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
-
-    // if let Some(s) = ctx.selected {
-    //     if let Some(node) = s.node() {
-    //         let set = if let Selection::Setting(_, s) = s {
-    //             Some(s)
-    //         } else {
-    //             None
-    //         };
-    //         let node = gen.get(node).expect("Selection should always point to real node.").0;
-    //         let settings = node.settings();
-    //         let size = 23.;
-    //         for (i, setting) in settings.iter().enumerate() {
-    //             if set == Some(i) {
-    //                 continue;
-    //             }
-    //             let pos = Vect::new(0., -(i as f32) / 20.);
-    //             let mut string = setting.to_string();
-    //             string.push_str(": ");
-    //             string.push_str(&node.setting(setting).to_string());
-    //             rctx.fonts.draw_text(&display, &mut target, "anka", size, [0., 0., 0., 1.], pos, &string);
-    //         }
-    //         if let Some(i) = set {
-    //             let pos = Vect::new(0., -(i as f32) / 20.);
-    //             let mut string = settings[i].to_string();
-    //             string.push_str(": ");
-    //             match node.setting(settings[i]) {
-    //                 Setting::Blend(ref b) => {
-    //                     let bb = rctx.fonts.bounding_box("anka", size, &string).unwrap();
-    //                     string.push_str(&format!("{:?}", b));
-    //                     let max = from_window_to_screen(dims, [bb.max.x, bb.max.y]);
-    //                     let pos = pos + Vect::new(max.x * 1.5, -1. / 20.);
-    //                     for (i, blend) in BlendType::iter_variants().enumerate() {
-    //                         let blend = format!("{:?}", blend);
-    //                         let pos = pos + Vect::new(0., -(i as f32 / 20.));
-    //                         rctx.fonts.draw_text(&display, &mut target, "anka", size, [0., 0., 0., 1.], pos, &blend);
-    //                     }
-    //                 },
-    //                 _ => {
-    //                     if let Some(Writing) = ctx.state {
-    //                         let ch = if 0 % 120 < 60 { //TODO: Fix Me
-    //                             '|'
-    //                         } else {
-    //                             ' '
-    //                         };
-    //                         if ctx.text.is_empty() {
-    //                             string.push(ch);
-    //                         } else {
-    //                             let (a, b) = ctx.text.split_at(ctx.caret);
-    //                             string.push_str(&format!("{}{}{}", a, ch, b));
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             rctx.fonts.draw_text(&display, &mut target, "anka", size, [0., 0., 0., 1.], pos, &string);
-    //         }
-    //     }
-    // }
     target.finish().unwrap();
 }
 
