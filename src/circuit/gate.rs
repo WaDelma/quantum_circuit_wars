@@ -84,3 +84,29 @@ impl Gate for Not {
         }
     }
 }
+
+
+#[derive(Clone)]
+pub struct ControlNot;
+
+impl ControlNot {
+    pub fn new() -> Box<Gate> {
+        Box::new(ControlNot)
+    }
+}
+
+impl Gate for ControlNot {
+    fn max_in(&self) -> u32 {
+        2
+    }
+    fn max_out(&self) -> u32 {
+        2
+    }
+    fn process(&self, input: &[DMatrix<Complex<f64>>]) -> Vec<DMatrix<Complex<f64>>> {
+        if input.len() == 1 {
+            vec![::control_not(0, 1, 2) * input[0].clone()]
+        } else {
+            vec![]
+        }
+    }
+}
