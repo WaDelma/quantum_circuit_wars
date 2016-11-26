@@ -50,7 +50,7 @@ fn main() {
     let mut ctx = GameContext::new();
     while ctx.running {
         let dims = display.get_framebuffer_dimensions();
-        rctx.cam = matrix(
+        render_context.cam = matrix(
             [[ctx.zoom / dims.0 as f32, 0., 0., 0.],
              [0., ctx.zoom / dims.1 as f32, 0., 0.],
              [0., 0., 1., 0.],
@@ -58,7 +58,7 @@ fn main() {
         );
 
         if let Some(Splash) = ctx.state {
-            render_splashscreen(render_context);
+            render_splashscreen(&mut render_context);
         }
     }
 }
