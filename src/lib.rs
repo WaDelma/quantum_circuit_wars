@@ -8,7 +8,7 @@ use nalgebra::{DMatrix, Eye};
 
 use std::ops::{Index, Mul};
 
-mod dag;
+mod circuit;
 
 #[derive(Clone, Debug)]
 pub struct Qubit {

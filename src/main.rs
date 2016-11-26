@@ -3,9 +3,11 @@ extern crate glium;
 extern crate daggy;
 extern crate rusttype;
 extern crate unicode_normalization;
+extern crate num;
 extern crate nalgebra;
 extern crate image;
 extern crate arrayvec;
+extern crate quantum_circuit_wars;
 
 use glium::{DisplayBuild, Program};
 use glium::glutin::WindowBuilder;
@@ -18,6 +20,7 @@ type Vect = nalgebra::Vector2<f32>;
 mod events;
 mod graphics;
 mod math;
+mod circuit;
 
 fn main() {
     println!("Let the quantum circuit wars begin!");
