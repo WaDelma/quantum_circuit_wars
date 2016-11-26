@@ -1,3 +1,4 @@
+#![allow(warnings)]
 extern crate nalgebra;
 extern crate num;
 extern crate itertools;
@@ -8,7 +9,7 @@ use nalgebra::{DMatrix, Eye};
 
 use std::ops::{Index, Mul};
 
-mod circuit;
+pub mod circuit;
 
 #[derive(Clone, Debug)]
 pub struct Qubit {

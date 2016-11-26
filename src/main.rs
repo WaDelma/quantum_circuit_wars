@@ -1,3 +1,4 @@
+#![allow(warnings)]
 #[macro_use]
 extern crate glium;
 extern crate daggy;
@@ -21,7 +22,6 @@ type Vect = nalgebra::Vector2<f32>;
 mod events;
 mod graphics;
 mod math;
-mod circuit;
 
 pub struct Node {
     pos: Vect,
@@ -39,18 +39,20 @@ impl Node {
     }
 }
 
+#[derive(Clone, Copy)]
 enum GameState {
     Splash, Menu, Game, End,
 }
 
 fn main() {
+    use self::GameState::*;
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
     let mut ctx = GameContext::new();
     while ctx.running {
         let dims = display.get_framebuffer_dimensions();
-        rctx.cam = matrix(
+        render_context.cam = math::matrix(
             [[ctx.zoom / dims.0 as f32, 0., 0., 0.],
              [0., ctx.zoom / dims.1 as f32, 0., 0.],
              [0., 0., 1., 0.],
@@ -58,7 +60,7 @@ fn main() {
         );
 
         if let Some(Splash) = ctx.state {
-            render_splashscreen(render_context);
+            render_splashscreen(&mut render_context);
         }
     }
 }
@@ -72,10 +74,9 @@ pub fn render_splashscreen(render_context: &mut RenderContext) {
                              [0.0, scale, 0.0, 0.0],
                              [0.0, 0.0, 1.0, 0.0],
                              [0.0, 0.0, 0.0, 1.0]];
-    
 }
 
-struct GameContext {
+pub struct GameContext {
     running: bool,
     zoom: f32,
     caret: usize,
@@ -87,12 +88,14 @@ struct GameContext {
 
 impl GameContext {
     fn new() -> GameContext {
-        running: true,
-        zoom: 200.,
-        caret: 0,
-        state: GameState::Splash,
-        text: String::new(),
-        node_width: 1.,
-        port_size: 0.1,
+        GameContext {
+            running: true,
+            zoom: 200.,
+            caret: 0,
+            state: Some(GameState::Splash),
+            text: String::new(),
+            node_width: 1.,
+            port_size: 0.1,
+        }
     }
 }

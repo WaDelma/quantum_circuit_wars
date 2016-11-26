@@ -140,6 +140,7 @@ impl<'a> RenderContext<'a> {
             cam: Mat::new_identity(4),
             models: models,
             programs: programs,
+            textures: HashMap::new(),
         }
     }
 }
