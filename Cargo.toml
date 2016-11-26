@@ -1,7 +1,7 @@
 [package]
 name = "quantum_circuit_wars"
 version = "0.1.0"
-authors = ["delma <delma@del.ma>", "VoxWave"å]
+authors = ["delma <delma@del.ma>", "VoxWave"]
 
 [dependencies]
 image = "=0.10.*"
