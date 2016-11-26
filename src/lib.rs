@@ -94,6 +94,95 @@ pub fn hadamard() -> DMatrix<Complex<f64>> {
         ])
 }
 
+pub fn control_not(control: usize, target: usize, qubits: usize) -> DMatrix<Complex<f64>> {
+    let mut result = DMatrix::new_zeros(2usize.pow(qubits as u32), 2usize.pow(qubits as u32));
+    let basis_out = basis_n(qubits)
+        .map(|mut v| {
+            if v[control] == 1 {
+                v[target] ^= 1;
+            }
+            v
+        });
+    for (i, b) in basis_out.enumerate() {
+        let mut n = 0;
+        for (j, c) in b.iter().enumerate() {
+            n += c * 2usize.pow((qubits - 1 - j) as u32);
+        }
+        result[(n, i)] = Complex::one();
+    }
+    result
+}
+
+#[test]
+fn control_not_test() {
+    let r = DMatrix::from_column_vector(8, 8, &[
+        1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 1., 0., 0., 0., 0., 0., 0.,
+        0., 0., 1., 0., 0., 0., 0., 0.,
+        0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 1., 0.,
+        0., 0., 0., 0., 0., 0., 0., 1.,
+        0., 0., 0., 0., 1., 0., 0., 0.,
+        0., 0., 0., 0., 0., 1., 0., 0.,
+        ].iter().map(|n| Complex::new(*n, 0.)).collect::<Vec<_>>()[..]);
+    assert_eq!(r, control_not(0, 1, 3));
+}
+
+pub struct BasisIter {
+    n: usize,
+    i: usize,
+}
+
+impl Iterator for BasisIter {
+    type Item = Vec<usize>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i < 2usize.pow(self.n as u32) {
+            let mut result = Vec::with_capacity(self.n);
+            for x in (0..self.n).rev() {
+                result.push((self.i >> x) & 1)
+            }
+            self.i += 1;
+            Some(result)
+        } else {
+            None
+        }
+    }
+}
+
+pub fn basis_n(n: usize) -> BasisIter {
+    BasisIter {
+        n: n,
+        i: 0,
+    }
+}
+
+#[test]
+fn basis_n_test() {
+    let mut b = basis_n(3);
+    assert_eq!(Some(vec![0, 0, 0]), b.next());
+    assert_eq!(Some(vec![0, 0, 1]), b.next());
+    assert_eq!(Some(vec![0, 1, 0]), b.next());
+    assert_eq!(Some(vec![0, 1, 1]), b.next());
+    assert_eq!(Some(vec![1, 0, 0]), b.next());
+    assert_eq!(Some(vec![1, 0, 1]), b.next());
+    assert_eq!(Some(vec![1, 1, 0]), b.next());
+    assert_eq!(Some(vec![1, 1, 1]), b.next());
+    assert_eq!(None, b.next());
+    assert_eq!(None, b.next());
+}
+
+pub fn cnot_rule(x: usize, y: usize) -> (usize, usize) {
+    (x, x ^ y)
+}
+
+#[test]
+fn cnot_rule_test() {
+    assert_eq!((0, 1), cnot_rule(0, 1));
+    assert_eq!((1, 1), cnot_rule(1, 0));
+    assert_eq!((1, 0), cnot_rule(1, 1));
+}
+
+
 #[test]
 fn not_gate_test() {
     use self::num::Complex as C;
@@ -115,10 +204,6 @@ fn not_gate_test() {
     );
 
     let q123 = kronecker_product(&[q1.mat().clone(), q2.mat().clone(), q3.mat().clone()]);
-    // assert_eq!(
-    //
-    //     q123
-    // );
     println!("{:?}", q123);
 
     let asdads = apply_to_qubit(not(), 1, 3);
@@ -134,9 +219,16 @@ fn not_gate_test() {
     let asd = apply_to_qubit(not(), 3, 3);
     println!("{:?}", dasd * asd * q123.clone());
 
-    let dasd = apply_to_qubit(hadamard(), 2, 3);
-    let asd = apply_to_qubit(not(), 3, 3);
-    println!("{:?}", dasd.clone() * dasd * asd * q123.clone());
+    let sqrt5_2 = 2. * 5f64.sqrt();
+    let h2 = apply_to_qubit(hadamard(), 2, 3);
+    let n3 = apply_to_qubit(not(), 3, 3);
+    let r = h2.clone() * h2 * n3 * q123.clone();
+    let rr = DMatrix::from_column_vector(8, 1, &[
+            C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
+            C::zero(), C::zero(),
+            C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
+            C::zero(), C::zero()]);
+    assert!(r.as_vector().iter().zip(rr.as_vector()).all(|(a, b)| (a - b).norm() < 0.000001));
 }
 
 #[test]
