@@ -7,6 +7,7 @@ use glium::draw_parameters::BlendingFunction::*;
 use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue, MagnifySamplerFilter, MinifySamplerFilter};
 
 use nalgebra::Norm;
+use std::convert::AsRef;
 
 use {GameContext, Node, Vect};
 use super::{RenderContext, Vertex, vert};
@@ -96,6 +97,7 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
 }
 
 pub fn render_splashscreen(render_context: &mut RenderContext) {
+    use
     let mut target = display.draw();
     let draw_params = DrawParameters {
         blend: Blend {
@@ -112,7 +114,7 @@ pub fn render_splashscreen(render_context: &mut RenderContext) {
         smooth: None,
         ..Default::default()
     };
-    let texture = render_context.textures.get("splash");
+    let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
     let program = render_context.programs.get("plain");
     let splash_matrix = render_context.cam * math::translation(0., 0.) * scale(ctx.port_size, crtx.port_size);
