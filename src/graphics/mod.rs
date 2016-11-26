@@ -58,8 +58,6 @@ impl Model {
 
 implement_vertex!(Vertex, position, tex_coords);
 
-
-
 pub struct RenderContext<'a> {
     pub fonts: Fonts<'a>,
     pub cam: Mat,
