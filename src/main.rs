@@ -51,7 +51,6 @@ enum GameState {
 }
 
 fn main() {
-    use self::GameState::*;
     use self::graphics::renderer::render_splashscreen;
     let mut gv = Game::new();
     let a = gv.add(Input::new(), Node::new(Vect::zero()));
