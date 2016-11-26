@@ -46,7 +46,7 @@ enum GameState {
 
 fn main() {
     use self::GameState::*;
-    use self::graphics::rendered::render_splashscreen;
+    use self::graphics::renderer::render_splashscreen;
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
@@ -61,7 +61,7 @@ fn main() {
         );
 
         if let Some(Splash) = ctx.state {
-            render_splashscreen(&mut render_context);
+            render_splashscreen(&display, &mut render_context);
         }
     }
 }

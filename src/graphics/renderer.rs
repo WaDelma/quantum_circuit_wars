@@ -96,8 +96,8 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     target.finish().unwrap();
 }
 
-pub fn render_splashscreen(render_context: &mut RenderContext) {
-    use
+pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext) {
+    use math::translation;
     let mut target = display.draw();
     let draw_params = DrawParameters {
         blend: Blend {
@@ -116,16 +116,16 @@ pub fn render_splashscreen(render_context: &mut RenderContext) {
     };
     let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
-    let program = render_context.programs.get("plain");
-    let splash_matrix = render_context.cam * math::translation(0., 0.) * scale(ctx.port_size, crtx.port_size);
+    let program = render_context.programs.get("plain").unwrap();
+    let splash_matrix = render_context.cam * translation(0., 0.) * scale(1., 1.);
     let uniforms = uniform! {
-        matrix: *matrix.as_ref(),
+        matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
             .magnify_filter(MagnifySamplerFilter::Nearest)
             .minify_filter(MinifySamplerFilter::Nearest),
 
     };
-    target.draw(&model.vertices, &model.indices, program, uniforms, draw_params);
+    target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
 }
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)

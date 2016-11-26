@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 
-use std::file::File;
+use std::fs::File;
+use std::io::BufRead;
 
 use glium::texture::RawImage2d;
 use glium::{VertexBuffer, Program};
