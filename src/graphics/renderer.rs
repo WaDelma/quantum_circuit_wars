@@ -4,9 +4,10 @@ use glium::index::{IndexBuffer, PrimitiveType};
 use glium::draw_parameters::DrawParameters;
 use glium::draw_parameters::LinearBlendingFactor::*;
 use glium::draw_parameters::BlendingFunction::*;
-use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue};
+use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue, MagnifySamplerFilter, MinifySamplerFilter};
 
 use nalgebra::Norm;
+use std::convert::AsRef;
 
 use {GameContext, Node, Vect};
 use super::{RenderContext, Vertex, vert};
@@ -93,6 +94,38 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     let program = rctx.programs.get("plain").unwrap();
     target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
     target.finish().unwrap();
+}
+
+pub fn render_splashscreen(render_context: &mut RenderContext) {
+    use
+    let mut target = display.draw();
+    let draw_params = DrawParameters {
+        blend: Blend {
+            color: Addition {
+                source: SourceAlpha,
+                destination: OneMinusSourceAlpha,
+            },
+            alpha: Addition {
+                source: SourceAlpha,
+                destination: OneMinusSourceAlpha,
+            },
+            constant_value: (0f32, 0f32, 0f32, 1f32),
+        },
+        smooth: None,
+        ..Default::default()
+    };
+    let texture = render_context.textures.get("splash").unwrap();
+    let model = render_context.models.get("node").unwrap();
+    let program = render_context.programs.get("plain");
+    let splash_matrix = render_context.cam * math::translation(0., 0.) * scale(ctx.port_size, crtx.port_size);
+    let uniforms = uniform! {
+        matrix: *matrix.as_ref(),
+        tex: texture.sampled()
+            .magnify_filter(MagnifySamplerFilter::Nearest)
+            .minify_filter(MinifySamplerFilter::Nearest),
+
+    };
+    target.draw(&model.vertices, &model.indices, program, uniforms, draw_params);
 }
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)

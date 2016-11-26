@@ -51,13 +51,13 @@ enum GameState {
 }
 
 fn main() {
+    use self::graphics::rendered::render_splashscreen;
     let mut gv = Game::new();
     let a = gv.add(Input::new(), Node::new(Vect::zero()));
     let b = gv.add(Not::new(), Node::new(Vect::one()));
     gv.connect(port(a, 0), port(b, 0));
     let c = gv.add(Output::new(), Node::new(2. * Vect::one()));
     gv.connect(port(b, 0), port(c, 0));
-
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
@@ -76,10 +76,6 @@ fn main() {
             render_splashscreen(&mut render_context);
         }
     }
-}
-
-pub fn render_splashscreen(render_context: &mut RenderContext) {
-
 }
 
 pub struct GameContext {

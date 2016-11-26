@@ -1,12 +1,18 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 
+use std::file::File;
+
+use glium::texture::RawImage2d;
 use glium::{VertexBuffer, Program};
 use glium::Display;
 use glium::index::{IndexBuffer, PrimitiveType};
 use glium::texture::Texture2d as Texture;
+use glium::backend::Facade;
 
 use nalgebra::Eye;
+
+use image::{GenericImage, load, PNG};
 
 use self::fonts::Fonts;
 use math::*;
@@ -51,6 +57,8 @@ impl Model {
 
 implement_vertex!(Vertex, position, tex_coords);
 
+
+
 pub struct RenderContext<'a> {
     pub fonts: Fonts<'a>,
     pub cam: Mat,
@@ -59,7 +67,18 @@ pub struct RenderContext<'a> {
     pub textures: HashMap<String, Texture>,
 }
 
+pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, name: S, path: P) -> (String, Texture) {
+    let path = PathBuf::from("assets")
+        .join("textures")
+        .join(path.into())
+        .with_extension("png");
+    let image = load(File::open(&path).unwrap(), PNG).unwrap().flipv();
+    let image = RawImage2d::from_raw_rgba(image.raw_pixels(), image.dimensions());
+    (name.into(), Texture::new(facade, image).unwrap())
+}
+
 impl<'a> RenderContext<'a> {
+
     pub fn new(display: &'a Display) -> RenderContext<'a> {
         let mut fonts = Fonts::new(display);
         fonts.load("anka",
@@ -80,6 +99,11 @@ impl<'a> RenderContext<'a> {
                 .join("fonts")
                 .join("square_sans_serif_7")
                 .with_extension("ttf"));
+
+        let mut textures = HashMap::new();
+
+        let (string, texture) = load_texture(display, "splash", "splashscreen");
+        textures.insert(string, texture);
 
         let mut models = HashMap::new();
         models.insert("node".into(), {
