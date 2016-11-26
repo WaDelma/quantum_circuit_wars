@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate glium;
 extern crate daggy;
 extern crate rusttype;
@@ -5,10 +6,17 @@ extern crate unicode_normalization;
 extern crate nalgebra;
 extern crate image;
 
-mod render;
+use glium::{DisplayBuild, Program};
+use glium::glutin::WindowBuilder;
+
+use graphics::RenderContext;
+
+mod events;
+mod graphics;
+mod math;
 
 fn main() {
-    println!("Hello, world!");
-
+    println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
+    let mut render_context = RenderContext::new(&display);
 }
