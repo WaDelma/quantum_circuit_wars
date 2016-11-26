@@ -10,12 +10,26 @@ use nalgebra::Norm;
 // use texturegen::GeneratorView;
 // use texturegen::process::{Process, Setting, BlendType};
 
-use {SimContext, Selection, Node, Vect, input_pos, output_pos};
+use {SimContext, Selection, Node, Vect};
 use super::{RenderContext, Vertex, vert};
-use State::*;
+//use State::*;
 use math::*;
 
-pub fn render(display: &Display, rctx: &mut RenderContext, world: GeneratorView<Node>, ctx: &SimContext) {
+fn input_pos(gen: &Generator<Node>, input: Port<u32>, _size: f32) -> Vect {
+    let node = gen.get(input.node).unwrap();
+    let pos = node.1.pos;
+    let percent = (input.port + 1) as f32 / (node.0.max_in() + 1) as f32;
+    Vect::new(pos[0] - 0.5 + percent, -(pos[1] - 0.5))
+}
+
+fn output_pos(gen: &Generator<Node>, output: Port<u32>, size: f32) -> Vect {
+    let node = gen.get(output.node).unwrap();
+    let pos = node.1.pos;
+    let percent = (output.port + 1) as f32 / (node.0.max_out() + 1) as f32;
+    Vect::new(pos[0] - 0.5 + percent, -(pos[1] + 0.5 + size))
+}
+
+pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &SimContext) {
     let mut target = display.draw();
     target.clear_color(0.0157, 0.0173, 0.0204, 1.);
     let draw_params = DrawParameters {
