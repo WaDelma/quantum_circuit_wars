@@ -46,6 +46,7 @@ enum GameState {
 
 fn main() {
     use self::GameState::*;
+    use self::graphics::rendered::render_splashscreen;
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
@@ -63,17 +64,6 @@ fn main() {
             render_splashscreen(&mut render_context);
         }
     }
-}
-
-pub fn render_splashscreen(render_context: &mut RenderContext) {
-    let texture = render_context.textures.get("splash");
-    let model = render_context.models.get("splash_model");
-    let program = render_context.programs.get("splash_program");
-    let scale = 1.;
-    let mut splash_matrix = [[scale, 0.0, 0.0, 0.0],
-                             [0.0, scale, 0.0, 0.0],
-                             [0.0, 0.0, 1.0, 0.0],
-                             [0.0, 0.0, 0.0, 1.0]];
 }
 
 pub struct GameContext {

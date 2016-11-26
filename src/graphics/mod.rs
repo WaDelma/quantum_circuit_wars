@@ -1,12 +1,18 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 
+use std::file::File;
+
+use glium::texture::RawImage2d;
 use glium::{VertexBuffer, Program};
 use glium::Display;
 use glium::index::{IndexBuffer, PrimitiveType};
 use glium::texture::Texture2d as Texture;
+use glium::backend::Facade;
 
 use nalgebra::Eye;
+
+use image::{GenericImage, load, PNG};
 
 use self::fonts::Fonts;
 use math::*;
