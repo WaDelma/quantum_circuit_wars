@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::collections::HashMap;
 
 use std::fs::File;
-use std::io::BufRead;
+use std::io::BufReader;
 
 use glium::texture::RawImage2d;
 use glium::{VertexBuffer, Program};
@@ -73,7 +73,7 @@ pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, na
         .join("textures")
         .join(path.into())
         .with_extension("png");
-    let image = load(File::open(&path).unwrap(), PNG).unwrap().flipv();
+    let image = load(BufReader::new(File::open(&path).unwrap()), PNG).unwrap().flipv();
     let image = RawImage2d::from_raw_rgba(image.raw_pixels(), image.dimensions());
     (name.into(), Texture::new(facade, image).unwrap())
 }
