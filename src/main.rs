@@ -9,6 +9,7 @@ extern crate arrayvec;
 
 use glium::{DisplayBuild, Program};
 use glium::glutin::WindowBuilder;
+use std::cell::RefCell;
 
 use graphics::RenderContext;
 
@@ -19,8 +20,55 @@ mod events;
 mod graphics;
 mod math;
 
+pub struct Node {
+    pos: Vect,
+    shader: RefCell<Option<Program>>,
+    inputs: RefCell<Vec<Vect>>,
+    outputs: RefCell<Vec<Vect>>,
+}
+
+impl Node {
+    fn new(pos: Vect) -> Node {
+        Node {
+            pos: pos,
+            shader: RefCell::new(None),
+            inputs: RefCell::new(vec![]),
+            outputs: RefCell::new(vec![]),
+        }
+    }
+}
+
+enum GameState {
+    Splash, Menu, Game, End,
+}
+
 fn main() {
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
+    let mut ctx = GameContext::new();
+
+
+}
+
+struct GameContext {
+    running: bool,
+    zoom: f32,
+    caret: usize,
+    state: Option<GameState>,
+    text: String,
+    node_width: f32,
+    port_size: f32,
+}
+
+impl GameContext {
+    fn new() -> GameContext {
+        running: true,
+        zoom: 200.,
+        caret: 0,
+        state: GameState::Splash,
+        text: String::new(),
+        node_width: 1.,
+        port_size: 0.1,
+    }
 }
