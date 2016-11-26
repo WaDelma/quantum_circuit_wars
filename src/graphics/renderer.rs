@@ -55,7 +55,7 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         };
         draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
         let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
-        let program = unimplemented!();//TODO: data.shader.borrow();
+        let program = rctx.programs.get("plain");
         let program = program.as_ref().expect("Node didn't have shader.");
         let uniforms = uniform! {
             matrix: *matrix.as_ref(),

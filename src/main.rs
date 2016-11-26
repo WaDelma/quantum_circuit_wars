@@ -39,18 +39,20 @@ impl Node {
     }
 }
 
+#[derive(Clone, Copy)]
 enum GameState {
     Splash, Menu, Game, End,
 }
 
 fn main() {
+    use self::GameState::*;
     println!("Let the quantum circuit wars begin!");
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
     let mut ctx = GameContext::new();
     while ctx.running {
         let dims = display.get_framebuffer_dimensions();
-        render_context.cam = matrix(
+        render_context.cam = math::matrix(
             [[ctx.zoom / dims.0 as f32, 0., 0., 0.],
              [0., ctx.zoom / dims.1 as f32, 0., 0.],
              [0., 0., 1., 0.],
@@ -67,7 +69,7 @@ pub fn render_splashscreen(render_context: &mut RenderContext) {
 
 }
 
-struct GameContext {
+pub struct GameContext {
     running: bool,
     zoom: f32,
     caret: usize,
