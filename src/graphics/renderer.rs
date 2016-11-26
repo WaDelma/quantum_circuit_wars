@@ -34,13 +34,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, gen: GeneratorView<No
         ..Default::default()
     };
     let dims = display.get_framebuffer_dimensions();
-    for (_, data) in gen.iter() {
-        let pos = flip_y(data.pos);
-        let corner_pos = pos - Vect::new(ctx.node_width, ctx.node_width) * 0.5;
-        let matrix = rctx.cam * translation(corner_pos.x, corner_pos.y);
-        let uniforms = uniform! {
-            matrix: *matrix.as_ref(),
-        };
         draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
         let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
         let program = data.shader.borrow();
