@@ -11,6 +11,8 @@ use glium::glutin::WindowBuilder;
 
 use graphics::RenderContext;
 
+type Mat = nalgebra::Matrix4<f32>;
+
 mod events;
 mod graphics;
 mod math;
