@@ -73,7 +73,7 @@ pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, na
         .join(path.into())
         .with_extension("png");
     let image = load(BufReader::new(File::open(&path).unwrap()), PNG).unwrap().flipv();
-    let image = RawImage2d::from_raw_rgb(image.raw_pixels(), image.dimensions());
+    let image = RawImage2d::from_raw_rgba(image.raw_pixels(), image.dimensions());
     (name.into(), SrgbTexture2d::new(facade, image).unwrap())
 }
 
@@ -102,7 +102,7 @@ impl<'a> RenderContext<'a> {
 
         let mut textures = HashMap::new();
 
-        let (string, texture) = load_texture(display, "splash", "ALICE_startscreen");
+        let (string, texture) = load_texture(display, "splash", "splashscreen");
         textures.insert(string, texture);
 
         let mut models = HashMap::new();
