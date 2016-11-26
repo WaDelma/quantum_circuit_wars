@@ -25,7 +25,6 @@ mod circuit;
 
 pub struct Node {
     pos: Vect,
-    shader: RefCell<Option<Program>>,
     inputs: RefCell<Vec<Vect>>,
     outputs: RefCell<Vec<Vect>>,
 }
@@ -34,7 +33,6 @@ impl Node {
     fn new(pos: Vect) -> Node {
         Node {
             pos: pos,
-            shader: RefCell::new(None),
             inputs: RefCell::new(vec![]),
             outputs: RefCell::new(vec![]),
         }
