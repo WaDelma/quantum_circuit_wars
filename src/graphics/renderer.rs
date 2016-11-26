@@ -113,7 +113,7 @@ pub fn render_splashscreen(render_context: &mut RenderContext) {
         ..Default::default()
     };
     let texture = render_context.textures.get("splash");
-    let model = render_context.models.get("node");
+    let model = render_context.models.get("node").unwrap();
     let program = render_context.programs.get("plain");
     let splash_matrix = render_context.cam * math::translation(0., 0.) * scale(ctx.port_size, crtx.port_size);
     let uniforms = uniform! {
