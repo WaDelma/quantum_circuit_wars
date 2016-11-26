@@ -117,7 +117,7 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
     let program = render_context.programs.get("texture").unwrap();
-    let splash_matrix = render_context.cam * translation(0., 0.) * scale(1., 1.);
+    let splash_matrix = render_context.cam * translation(0., 0.) * scale(5., 5.);
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
@@ -125,8 +125,9 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
             .minify_filter(MinifySamplerFilter::Nearest),
 
     };
+    target.clear_color(0.,0.,0.,1.);
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
-    target.finish();
+    target.finish().unwrap();
 }
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)

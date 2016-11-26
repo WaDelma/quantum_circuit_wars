@@ -10,6 +10,7 @@ use glium::Display;
 use glium::index::{IndexBuffer, PrimitiveType};
 use glium::texture::Texture2d as Texture;
 use glium::backend::Facade;
+use glium::texture::srgb_texture2d::SrgbTexture2d;
 
 use nalgebra::Eye;
 
@@ -63,17 +64,17 @@ pub struct RenderContext<'a> {
     pub cam: Mat,
     pub programs: HashMap<String, Program>,
     pub models: HashMap<String, Model>,
-    pub textures: HashMap<String, Texture>,
+    pub textures: HashMap<String, SrgbTexture2d>,
 }
 
-pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, name: S, path: P) -> (String, Texture) {
+pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, name: S, path: P) -> (String, SrgbTexture2d) {
     let path = PathBuf::from("assets")
         .join("textures")
         .join(path.into())
         .with_extension("png");
     let image = load(BufReader::new(File::open(&path).unwrap()), PNG).unwrap().flipv();
     let image = RawImage2d::from_raw_rgb(image.raw_pixels(), image.dimensions());
-    (name.into(), Texture::new(facade, image).unwrap())
+    (name.into(), SrgbTexture2d::new(facade, image).unwrap())
 }
 
 impl<'a> RenderContext<'a> {
@@ -101,7 +102,7 @@ impl<'a> RenderContext<'a> {
 
         let mut textures = HashMap::new();
 
-        let (string, texture) = load_texture(display, "splash", "splashscreen");
+        let (string, texture) = load_texture(display, "splash", "ALICE_startscreen");
         textures.insert(string, texture);
 
         let mut models = HashMap::new();
