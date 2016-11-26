@@ -10,9 +10,18 @@ pub trait Gate {
 }
 
 #[derive(Clone)]
-struct Input {
+pub struct Input {
     theta: f64,
     phi: f64,
+}
+
+impl Input {
+    pub fn new() -> Box<Gate> {
+        Box::new(Input{
+            theta: 0.,
+            phi: 0.,
+        })
+    }
 }
 
 impl Gate for Input {
@@ -31,7 +40,34 @@ impl Gate for Input {
 }
 
 #[derive(Clone)]
-struct Not;
+pub struct Output;
+
+impl Output {
+    pub fn new() -> Box<Gate> {
+        Box::new(Output)
+    }
+}
+
+impl Gate for Output {
+    fn max_in(&self) -> u32 {
+        1
+    }
+    fn max_out(&self) -> u32 {
+        0
+    }
+    fn process(&self, _: &[DMatrix<Complex<f64>>]) -> Vec<DMatrix<Complex<f64>>> {
+        vec![]
+    }
+}
+
+#[derive(Clone)]
+pub struct Not;
+
+impl Not {
+    pub fn new() -> Box<Gate> {
+        Box::new(Not)
+    }
+}
 
 impl Gate for Not {
     fn max_in(&self) -> u32 {
