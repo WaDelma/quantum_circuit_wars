@@ -117,7 +117,7 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
     let program = render_context.programs.get("texture").unwrap();
-    let splash_matrix = render_context.cam * translation(0., 0.) * scale(5., 5.);
+    let splash_matrix = render_context.cam * translation(-(texture.width() as f32)/2., -(texture.height() as f32)/2.) * scale(texture.width() as f32, texture.height() as f32);
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
