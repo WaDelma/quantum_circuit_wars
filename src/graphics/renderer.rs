@@ -64,7 +64,7 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GeneratorView<
         draw(&data.outputs.borrow());
         draw(&data.inputs.borrow());
     }
-    let mut lines = Vec::with_capacity(gen.connections());
+    let mut lines = Vec::with_capacity(world.connections());
     // if let Some(AddingEdge) = ctx.state {
     //     if let Some(Selection::Output(trg)) = ctx.selected {
     //         let src = output_pos(&gen, trg, ctx.thingy_size);
@@ -72,9 +72,9 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GeneratorView<
     //         add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
     //     }
     // }
-    for (src, trg) in gen.iter_connections() {
-        let src = output_pos(&gen, src, ctx.thingy_size);
-        let trg = input_pos(&gen, trg, ctx.thingy_size);
+    for (src, trg) in world.iter_connections() {
+        let src = output_pos(&world, src, ctx.thingy_size);
+        let trg = input_pos(&world, trg, ctx.thingy_size);
         let trg = Vect::new(trg[0], trg[1] + ctx.thingy_size);
         add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
     }

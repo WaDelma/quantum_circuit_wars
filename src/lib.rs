@@ -1,6 +1,7 @@
 extern crate nalgebra;
 extern crate num;
 extern crate itertools;
+extern crate daggy;
 
 use num::{Complex, One, Zero};
 use nalgebra::{DMatrix, Eye};

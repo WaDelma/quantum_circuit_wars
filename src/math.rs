@@ -1,6 +1,6 @@
 use {Vect, Mat};
 
-use nalgebra::{Vec4, Inv};
+use nalgebra::{Vector4, Inverse};
 
 pub const TAU: f32 = 2. * ::std::f32::consts::PI;
 
@@ -23,14 +23,14 @@ pub fn from_world_to_screen(cam: Mat, pos: Vect) -> Vect {
 }
 
 pub fn transform(matrix: Mat, vector: Vect) -> Vect {
-    let vector = Vec4::new(vector.x, vector.y, 0., 1.);
+    let vector = Vector4::new(vector.x, vector.y, 0., 1.);
     let vector = vector * matrix;
     Vect::new(vector.x, vector.y)
 }
 
 pub fn inverse_transform(matrix: Mat, vector: Vect) -> Vect {
-    let vector = Vec4::new(vector.x, vector.y, 0., 1.);
-    let vector = vector * matrix.inv().unwrap();
+    let vector = Vector4::new(vector.x, vector.y, 0., 1.);
+    let vector = vector * matrix.inverse().unwrap();
     Vect::new(vector.x, vector.y)
 }
 
