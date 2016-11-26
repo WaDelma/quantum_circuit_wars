@@ -9,6 +9,8 @@ use nalgebra::{DMatrix, Eye};
 
 use std::ops::{Index, Mul};
 
+use circuit::*;
+
 pub mod circuit;
 
 #[derive(Clone, Debug)]
