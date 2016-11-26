@@ -74,7 +74,7 @@ pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, na
         .join(path.into())
         .with_extension("png");
     let image = load(BufReader::new(File::open(&path).unwrap()), PNG).unwrap().flipv();
-    let image = RawImage2d::from_raw_rgba(image.raw_pixels(), image.dimensions());
+    let image = RawImage2d::from_raw_rgb(image.raw_pixels(), image.dimensions());
     (name.into(), Texture::new(facade, image).unwrap())
 }
 
@@ -95,7 +95,7 @@ impl<'a> RenderContext<'a> {
                 .join("PressStart2P")
                 .with_extension("ttf"));
 
-        fonts.load("press_start_2p",
+        fonts.load("square_sans_serif_7",
             PathBuf::from("assets")
                 .join("fonts")
                 .join("square_sans_serif_7")
@@ -121,6 +121,32 @@ impl<'a> RenderContext<'a> {
         });
 
         let mut programs = HashMap::new();
+        programs.insert("texture".into(),
+            program!(
+                display,
+                140 => {
+                    vertex: "
+                        #version 140
+                        in vec2 position;
+                        in vec2 tex_coords;
+                        out vec2 v_tex_coords;
+                        uniform mat4 matrix;
+                        void main() {
+                            v_tex_coords = tex_coords;
+                            gl_Position = matrix * vec4(position, 0, 1);
+                        }
+                    ",
+                    fragment: "
+                        #version 140
+                        in vec2 v_tex_coords;
+                        out vec4 color;
+                        uniform sampler2D tex;
+                        void main() {
+                            color = texture(tex, v_tex_coords);
+                        }
+                    "
+                }).unwrap());
+
         programs.insert("plain".into(),
             program!(
                 display,
@@ -147,7 +173,7 @@ impl<'a> RenderContext<'a> {
             cam: Mat::new_identity(4),
             models: models,
             programs: programs,
-            textures: HashMap::new(),
+            textures: textures,
         }
     }
 }

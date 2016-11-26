@@ -116,7 +116,7 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     };
     let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
-    let program = render_context.programs.get("plain").unwrap();
+    let program = render_context.programs.get("texture").unwrap();
     let splash_matrix = render_context.cam * translation(0., 0.) * scale(1., 1.);
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
@@ -126,6 +126,7 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
 
     };
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
+    target.finish();
 }
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)
