@@ -214,8 +214,16 @@ fn not_gate_test() {
     let asdads = apply_to_qubit(not(), 2, 3);
     println!("{:?}", asdads * q123.clone());
 
-    let asdads = apply_to_qubit(not(), 3, 3);
-    println!("{:?}", asdads * q123.clone());
+    let sqrt5_2 = 2. * 5f64.sqrt();
+    let n3 = apply_to_qubit(not(), 3, 3);
+    let r = n3 * q123.clone();
+    let rr = DMatrix::from_column_vector(8, 1, &[
+            C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
+            C::zero(), C::zero(),
+            C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
+            C::zero(), C::zero()]);
+    assert!(r.as_vector().iter().zip(rr.as_vector()).all(|(a, b)| (a - b).norm() < 0.000001));
+    // println!("{:?}", asdads * q123.clone());
 
     let dasd = apply_to_qubit(hadamard(), 2, 3);
     let asd = apply_to_qubit(not(), 3, 3);
