@@ -29,34 +29,34 @@ pub enum EventType {
     Removed,
 }
 
-pub struct Generator<T> {
+pub struct Game<T> {
     dag: PortNumbered<Node<T>>
 }
 
-pub struct GeneratorView<'a, T: 'a> (&'a Generator<T>);
+pub struct GameView<'a, T: 'a> (&'a Game<T>);
 
-impl<'a, T: 'a> GeneratorView<'a, T> {
+impl<'a, T: 'a> GameView<'a, T> {
     pub fn get(&self, node: NodeIndex) -> Option<(&Gate, &T)> {
         self.0.dag.node_weight(node).map(|n| (&*n.process, &n.data))
     }
 }
 
-impl<'a, T: 'a> Deref for GeneratorView<'a, T> {
-    type Target = Generator<T>;
+impl<'a, T: 'a> Deref for GameView<'a, T> {
+    type Target = Game<T>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl<T> Generator<T> {
-    pub fn new() -> Generator<T> {
-        Generator {
+impl<T> Game<T> {
+    pub fn new() -> Game<T> {
+        Game {
             dag: PortNumbered::new(),
         }
     }
 
-    pub fn view<F>(&mut self) -> GeneratorView<T> {
-        GeneratorView(&*self)
+    pub fn view<F>(&mut self) -> GameView<T> {
+        GameView(&*self)
     }
 
     pub fn get(&self, node: NodeIndex) -> Option<(&Box<Gate>, &T)> {

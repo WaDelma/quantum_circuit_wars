@@ -1,3 +1,4 @@
+#![allow(warnings)]
 #[macro_use]
 extern crate glium;
 extern crate daggy;
@@ -64,7 +65,7 @@ fn main() {
 }
 
 pub fn render_splashscreen(render_context: &mut RenderContext) {
-    
+
 }
 
 struct GameContext {
@@ -79,12 +80,14 @@ struct GameContext {
 
 impl GameContext {
     fn new() -> GameContext {
-        running: true,
-        zoom: 200.,
-        caret: 0,
-        state: GameState::Splash,
-        text: String::new(),
-        node_width: 1.,
-        port_size: 0.1,
+        GameContext {
+            running: true,
+            zoom: 200.,
+            caret: 0,
+            state: Some(GameState::Splash),
+            text: String::new(),
+            node_width: 1.,
+            port_size: 0.1,
+        }
     }
 }

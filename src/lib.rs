@@ -1,3 +1,4 @@
+#![allow(warnings)]
 extern crate nalgebra;
 extern crate num;
 extern crate itertools;

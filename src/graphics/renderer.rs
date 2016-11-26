@@ -11,15 +11,16 @@ use nalgebra::Norm;
 use {SimContext, Selection, Node, Vect};
 use super::{RenderContext, Vertex, vert};
 use math::*;
+use circuit::{GameView, Game, Port};
 
-fn input_pos(gen: &Generator<Node>, input: Port<u32>, _size: f32) -> Vect {
+fn input_pos(gen: &Game<Node>, input: Port<u32>, _size: f32) -> Vect {
     let node = gen.get(input.node).unwrap();
     let pos = node.1.pos;
     let percent = (input.port + 1) as f32 / (node.0.max_in() + 1) as f32;
     Vect::new(pos[0] - 0.5 + percent, -(pos[1] - 0.5))
 }
 
-fn output_pos(gen: &Generator<Node>, output: Port<u32>, size: f32) -> Vect {
+fn output_pos(gen: &Game<Node>, output: Port<u32>, size: f32) -> Vect {
     let node = gen.get(output.node).unwrap();
     let pos = node.1.pos;
     let percent = (output.port + 1) as f32 / (node.0.max_out() + 1) as f32;
@@ -54,7 +55,7 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         };
         draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
         let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
-        let program = data.shader.borrow();
+        let program = unimplemented!();//TODO: data.shader.borrow();
         let program = program.as_ref().expect("Node didn't have shader.");
         let uniforms = uniform! {
             matrix: *matrix.as_ref(),
