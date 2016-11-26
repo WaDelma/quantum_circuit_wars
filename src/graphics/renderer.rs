@@ -8,10 +8,10 @@ use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue};
 
 use nalgebra::Norm;
 
-use {SimContext, Selection, Node, Vect};
+use {GameContext, Node, Vect};
 use super::{RenderContext, Vertex, vert};
 use math::*;
-use circuit::{GameView, Game, Port};
+use quantum_circuit_wars::circuit::{GameView, Game, Port};
 
 fn input_pos(gen: &Game<Node>, input: Port<u32>, _size: f32) -> Vect {
     let node = gen.get(input.node).unwrap();
@@ -27,7 +27,7 @@ fn output_pos(gen: &Game<Node>, output: Port<u32>, size: f32) -> Vect {
     Vect::new(pos[0] - 0.5 + percent, -(pos[1] + 0.5 + size))
 }
 
-pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &SimContext) {
+pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &GameContext) {
     let mut target = display.draw();
     target.clear_color(0.0157, 0.0173, 0.0204, 1.);
     let draw_params = DrawParameters {
@@ -65,8 +65,8 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
 
         let mut draw = |things: &[_]| {
             for p in things {
-                let p = pos + flip_y(*p) - Vect::new(ctx.thingy_size, ctx.thingy_size) * 0.5;
-                let matrix = rctx.cam * translation(p.x, p.y) * scale(ctx.thingy_size, ctx.thingy_size);
+                let p = pos + flip_y(*p) - Vect::new(ctx.port_size, ctx.port_size) * 0.5;
+                let matrix = rctx.cam * translation(p.x, p.y) * scale(ctx.port_size, ctx.port_size);
                 let uniforms = uniform! {
                     matrix: *matrix.as_ref(),
                 };
@@ -78,9 +78,9 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     }
     let mut lines = Vec::with_capacity(world.connections());
     for (src, trg) in world.iter_connections() {
-        let src = output_pos(&world, src, ctx.thingy_size);
-        let trg = input_pos(&world, trg, ctx.thingy_size);
-        let trg = Vect::new(trg[0], trg[1] + ctx.thingy_size);
+        let src = output_pos(&world, src, ctx.port_size);
+        let trg = input_pos(&world, trg, ctx.port_size);
+        let trg = Vect::new(trg[0], trg[1] + ctx.port_size);
         add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
     }
     let vertices = VertexBuffer::new(display, &lines).unwrap();

@@ -22,7 +22,6 @@ type Vect = nalgebra::Vector2<f32>;
 mod events;
 mod graphics;
 mod math;
-mod circuit;
 
 pub struct Node {
     pos: Vect,
