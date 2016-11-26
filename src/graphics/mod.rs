@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use glium::{VertexBuffer, Program};
 use glium::Display;
 use glium::index::{IndexBuffer, PrimitiveType};
+use glium::texture::Texture2d as Texture;
 
 use nalgebra::Eye;
 
@@ -55,6 +56,7 @@ pub struct RenderContext<'a> {
     pub cam: Mat,
     pub programs: HashMap<String, Program>,
     pub models: HashMap<String, Model>,
+    pub textures: HashMap<String, Texture>,
 }
 
 impl<'a> RenderContext<'a> {
