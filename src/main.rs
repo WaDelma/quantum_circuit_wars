@@ -64,6 +64,14 @@ fn main() {
 }
 
 pub fn render_splashscreen(render_context: &mut RenderContext) {
+    let texture = render_context.textures.get("splash");
+    let model = render_context.models.get("splash_model");
+    let program = render_context.programs.get("splash_program");
+    let scale = 1.;
+    let mut splash_matrix = [[scale, 0.0, 0.0, 0.0],
+                             [0.0, scale, 0.0, 0.0],
+                             [0.0, 0.0, 1.0, 0.0],
+                             [0.0, 0.0, 0.0, 1.0]];
     
 }
 
