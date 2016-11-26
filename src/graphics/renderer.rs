@@ -126,7 +126,7 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
 
     };
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
-    target.finish();
+    target.finish().unwrap();
 }
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)
