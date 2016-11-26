@@ -15,7 +15,7 @@ use super::{RenderContext, Vertex, vert};
 use State::*;
 use math::*;
 
-pub fn render(display: &Display, rctx: &mut RenderContext, gen: GeneratorView<Node>, ctx: &SimContext) {
+pub fn render(display: &Display, rctx: &mut RenderContext, world: GeneratorView<Node>, ctx: &SimContext) {
     let mut target = display.draw();
     target.clear_color(0.0157, 0.0173, 0.0204, 1.);
     let draw_params = DrawParameters {
@@ -34,7 +34,7 @@ pub fn render(display: &Display, rctx: &mut RenderContext, gen: GeneratorView<No
         ..Default::default()
     };
     let dims = display.get_framebuffer_dimensions();
-    for (_, data) in gen.iter() {
+    for (_, data) in world.iter() {
         let pos = flip_y(data.pos);
         let corner_pos = pos - Vect::new(ctx.node_width, ctx.node_width) * 0.5;
         let matrix = rctx.cam * translation(corner_pos.x, corner_pos.y);
