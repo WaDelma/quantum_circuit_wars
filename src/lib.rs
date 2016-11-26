@@ -7,6 +7,8 @@ use nalgebra::{DMatrix, Eye};
 
 use std::ops::{Index, Mul};
 
+mod dag;
+
 #[derive(Clone, Debug)]
 pub struct Qubit {
     q: DMatrix<Complex<f64>>
