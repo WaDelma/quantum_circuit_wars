@@ -47,15 +47,124 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         ..Default::default()
     };
     let dims = display.get_framebuffer_dimensions();
-    for (_, data) in world.iter() {
-        let pos = flip_y(data.pos);
-        let corner_pos = pos - Vect::new(ctx.node_width, ctx.node_width) * 0.5;
-        let matrix = rctx.cam * translation(corner_pos.x, corner_pos.y);
-        let uniforms = uniform! {
-            matrix: *matrix.as_ref(),
+    // for (_, data) in world.iter() {
+    //     let pos = flip_y(data.pos);
+    //     let corner_pos = pos - Vect::new(ctx.node_width, ctx.node_width) * 0.5;
+    //     let matrix = rctx.cam * translation(corner_pos.x, corner_pos.y);
+    //     let uniforms = uniform! {
+    //         matrix: *matrix.as_ref(),
+    //     };
+    //     draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
+    //     let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
+    //     let program = rctx.programs.get("plain");
+    //     let program = program.as_ref().expect("Node didn't have shader.");
+    //     let uniforms = uniform! {
+    //         matrix: *matrix.as_ref(),
+    //     };
+    //     let model = rctx.models.get("node").unwrap();
+    //     target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+    //
+    //     let mut draw = |things: &[_]| {
+    //         for p in things {
+    //             let p = pos + flip_y(*p) - Vect::new(ctx.port_size, ctx.port_size) * 0.5;
+    //             let matrix = rctx.cam * translation(p.x, p.y) * scale(ctx.port_size, ctx.port_size);
+    //             let uniforms = uniform! {
+    //                 matrix: *matrix.as_ref(),
+    //             };
+    //             draw(&mut target, &rctx, "node", "plain", &uniforms, &draw_params);
+    //         }
+    //     };
+    //     draw(&data.outputs.borrow());
+    //     draw(&data.inputs.borrow());
+    // }
+    // let mut lines = Vec::with_capacity(world.connections());
+    // for (src, trg) in world.iter_connections() {
+    //     let src = output_pos(&world, src, ctx.port_size);
+    //     let trg = input_pos(&world, trg, ctx.port_size);
+    //     let trg = Vect::new(trg[0], trg[1] + ctx.port_size);
+    //     add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
+    // }
+    // let vertices = VertexBuffer::new(display, &lines).unwrap();
+    // let indices = (0..lines.len() as u32).collect::<Vec<_>>();
+    // let indices = IndexBuffer::new(display, PrimitiveType::LinesList, &indices).unwrap();
+    // let matrix = rctx.cam * translation(0., 0.);
+    // let uniforms = uniform! {
+    //     matrix: *matrix.as_ref(),
+    // };
+    // let program = rctx.programs.get("plain").unwrap();
+    // target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
+
+    let mut lines = Vec::with_capacity(2);
+    lines.push(vert(-0.5, -0.4));
+    lines.push(vert(1., -0.4));
+    lines.push(vert(-0.5, 0.4));
+    lines.push(vert(1., 0.4));
+    let vertices = VertexBuffer::new(display, &lines).unwrap();
+    let indices = (0..lines.len() as u32).collect::<Vec<_>>();
+    let indices = IndexBuffer::new(display, PrimitiveType::LinesList, &indices).unwrap();
+    let matrix = translation(0., 0.);
+    let uniforms = uniform! {
+        matrix: *matrix.as_ref(),
+    };
+    let program = rctx.programs.get("plain").unwrap();
+    target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
+
+    let matrix = translation(-0.725, -0.55) *
+        scale(0.33, 0.33);
+    let program = rctx.programs.get("texture");
+    let program = program.as_ref().expect("Node didn't have shader.");
+    let texture = rctx.textures.get("alice").unwrap();
+    let uniforms = uniform! {
+        matrix: *matrix.as_ref(),
+        frame: rctx.alice_frame / 100,
+        tex: texture.sampled()
+            .magnify_filter(MagnifySamplerFilter::Nearest)
+            .minify_filter(MinifySamplerFilter::Nearest),
+    };
+    let model = rctx.models.get("frame").unwrap();
+    target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+    rctx.alice_frame += 1;
+    rctx.alice_frame %= 800;
+
+    let matrix = translation(-0.725, 0.3) *
+        scale(0.33, 0.33);
+    let program = rctx.programs.get("texture");
+    let program = program.as_ref().expect("Node didn't have shader.");
+    let texture = rctx.textures.get("bob").unwrap();
+    let uniforms = uniform! {
+        matrix: *matrix.as_ref(),
+        frame: rctx.bob_frame / 100,
+        tex: texture.sampled()
+            .magnify_filter(MagnifySamplerFilter::Nearest)
+            .minify_filter(MinifySamplerFilter::Nearest),
+    };
+    let model = rctx.models.get("frame").unwrap();
+    target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+    rctx.bob_frame += 1;
+    rctx.bob_frame %= 800;
+
+    if rctx.bob_frame == 400 {
+        rctx.boxes.push(super::ABox {
+            pos: Vect::new(0., -0.5),
+            typ: super::Type::Not,
+        });
+        rctx.boxes.push(super::ABox {
+            pos: Vect::new(0., 0.3),
+            typ: super::Type::Y,
+        });
+    }
+
+    let mut to_be_removed = vec![];
+    for (i, b) in rctx.boxes.iter_mut().enumerate() {
+        b.pos.x -= 0.001;
+        if b.pos.x < -0.70 {
+            to_be_removed.push(i);
+        }
+        let mut matrix = translation(b.pos.x, b.pos.y) * if b.typ.is_big() {
+            scale(0.1, 1.)
+        } else {
+            scale(0.1, 0.2)
         };
-        draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
-        let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
         let program = rctx.programs.get("plain");
         let program = program.as_ref().expect("Node didn't have shader.");
         let uniforms = uniform! {
@@ -63,42 +172,18 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         };
         let model = rctx.models.get("node").unwrap();
         target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+    }
+    for i in to_be_removed.into_iter().rev() {
+        rctx.boxes.remove(i);
+    }
 
-        let mut draw = |things: &[_]| {
-            for p in things {
-                let p = pos + flip_y(*p) - Vect::new(ctx.port_size, ctx.port_size) * 0.5;
-                let matrix = rctx.cam * translation(p.x, p.y) * scale(ctx.port_size, ctx.port_size);
-                let uniforms = uniform! {
-                    matrix: *matrix.as_ref(),
-                };
-                draw(&mut target, &rctx, "node", "plain", &uniforms, &draw_params);
-            }
-        };
-        draw(&data.outputs.borrow());
-        draw(&data.inputs.borrow());
-    }
-    let mut lines = Vec::with_capacity(world.connections());
-    for (src, trg) in world.iter_connections() {
-        let src = output_pos(&world, src, ctx.port_size);
-        let trg = input_pos(&world, trg, ctx.port_size);
-        let trg = Vect::new(trg[0], trg[1] + ctx.port_size);
-        add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
-    }
-    let vertices = VertexBuffer::new(display, &lines).unwrap();
-    let indices = (0..lines.len() as u32).collect::<Vec<_>>();
-    let indices = IndexBuffer::new(display, PrimitiveType::LinesList, &indices).unwrap();
-    let matrix = rctx.cam * translation(0., 0.);
-    let uniforms = uniform! {
-        matrix: *matrix.as_ref(),
-    };
-    let program = rctx.programs.get("plain").unwrap();
-    target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
     target.finish().unwrap();
 }
 
 pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext) {
     use math::translation;
     let mut target = display.draw();
+    target.clear_color(0., 0., 0., 1.);
     let draw_params = DrawParameters {
         blend: Blend {
             color: Addition {
@@ -117,7 +202,9 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let texture = render_context.textures.get("splash").unwrap();
     let model = render_context.models.get("node").unwrap();
     let program = render_context.programs.get("texture").unwrap();
-    let splash_matrix = render_context.cam * translation((0.-(texture.width() as f32)/2.), (0.-(texture.height() as f32)/2.)) * scale((texture.width() as f32)/2., (texture.height() as f32)/2.);
+    let splash_matrix =
+        translation(-1., -1.) *
+        scale(2., 2.);
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
@@ -125,8 +212,10 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
             .minify_filter(MinifySamplerFilter::Nearest),
 
     };
-    target.clear_color(0.,0.,0.,1.);
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
+
+    let string = "Press ANY-key to continue!";
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, -1.8), string);
     target.finish().unwrap();
 }
 

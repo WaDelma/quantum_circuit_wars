@@ -55,7 +55,7 @@ impl<T> Game<T> {
         }
     }
 
-    pub fn view<F>(&mut self) -> GameView<T> {
+    pub fn view(&mut self) -> GameView<T> {
         GameView(&*self)
     }
 

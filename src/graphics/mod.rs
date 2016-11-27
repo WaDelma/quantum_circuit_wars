@@ -18,7 +18,7 @@ use image::{GenericImage, load, PNG};
 
 use self::fonts::Fonts;
 use math::*;
-use Mat;
+use {Mat, Vect};
 
 pub mod renderer;
 pub mod fonts;
@@ -65,6 +65,32 @@ pub struct RenderContext<'a> {
     pub programs: HashMap<String, Program>,
     pub models: HashMap<String, Model>,
     pub textures: HashMap<String, SrgbTexture2d>,
+    pub alice_frame: i32,
+    pub bob_frame: i32,
+    pub boxes: Vec<ABox>,
+}
+
+pub enum Type {
+    Not,
+    Y,
+    Z,
+    H,
+    CNot,
+}
+
+impl Type {
+    pub fn is_big(&self) -> bool {
+        use self::Type::*;
+        match *self {
+            CNot => true,
+            _ => false,
+        }
+    }
+}
+
+pub struct ABox {
+    pub pos: Vect,
+    pub typ: Type,
 }
 
 pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, name: S, path: P) -> (String, SrgbTexture2d) {
@@ -78,7 +104,6 @@ pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, na
 }
 
 impl<'a> RenderContext<'a> {
-
     pub fn new(display: &'a Display) -> RenderContext<'a> {
         let mut fonts = Fonts::new(display);
         fonts.load("anka",
@@ -104,6 +129,10 @@ impl<'a> RenderContext<'a> {
 
         let (string, texture) = load_texture(display, "splash", "splashscreen");
         textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "alice", "ALICE_player");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "bob", "BOB_player");
+        textures.insert(string, texture);
 
         let mut models = HashMap::new();
         models.insert("node".into(), {
@@ -115,6 +144,13 @@ impl<'a> RenderContext<'a> {
         });
         models.insert("back".into(), {
             let (vertices, indices) = rounded_rectangle((1., 1.), (0.05, 0.05, 0.05, 0.05));
+            Model::new(VertexBuffer::new(display, &vertices).unwrap(),
+            IndexBuffer::new(display, PrimitiveType::TrianglesList, &indices).unwrap())
+        });
+        models.insert("frame".into(), {
+            let (vertices, indices) = (
+                [vertex(0., 0., 0., 0.), vertex(0., 1., 0., 1.), vertex(0.6, 0., 1. / 8., 0.), vertex(0.6, 1., 1. / 8., 1.)],
+                [0u32, 1, 2, 1, 2, 3]);
             Model::new(VertexBuffer::new(display, &vertices).unwrap(),
             IndexBuffer::new(display, PrimitiveType::TrianglesList, &indices).unwrap())
         });
@@ -130,8 +166,9 @@ impl<'a> RenderContext<'a> {
                         in vec2 tex_coords;
                         out vec2 v_tex_coords;
                         uniform mat4 matrix;
+                        uniform int frame;
                         void main() {
-                            v_tex_coords = tex_coords;
+                            v_tex_coords = vec2(tex_coords.x + frame * 0.125, tex_coords.y);
                             gl_Position = matrix * vec4(position, 0, 1);
                         }
                     ",
@@ -173,6 +210,9 @@ impl<'a> RenderContext<'a> {
             models: models,
             programs: programs,
             textures: textures,
+            alice_frame: 0,
+            bob_frame: 0,
+            boxes: vec![],
         }
     }
 }

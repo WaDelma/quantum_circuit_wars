@@ -51,7 +51,7 @@ enum GameState {
 }
 
 fn main() {
-    use self::graphics::renderer::render_splashscreen;
+    use self::graphics::renderer;
     let mut gv = Game::new();
     let a = gv.add(Input::new(), Node::new(Vect::zero()));
     let b = gv.add(Not::new(), Node::new(Vect::one()));
@@ -62,6 +62,7 @@ fn main() {
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
     let mut ctx = GameContext::new();
+    let mut timer = 0;
     while ctx.running {
         use self::GameState::*;
         let dims = display.get_framebuffer_dimensions();
@@ -71,9 +72,21 @@ fn main() {
              [0., 0., 1., 0.],
              [0., 0., 0., 1.]]
         );
-
+        match ctx.state {
+            Some(Splash) => {
+                renderer::render_splashscreen(&display, &mut render_context);
+                timer += 1;
+                if timer > 0 * 60 * 10 {
+                    timer = 0;
+                    ctx.state = Some(Game);
+                }
+            },
+            Some(Game) => {
+                renderer::render(&display, &mut render_context, gv.view(), &ctx);
+            }
+            _ => panic!(),
+        }
         if let Some(Splash) = ctx.state {
-            render_splashscreen(&display, &mut render_context);
         }
     }
 }
