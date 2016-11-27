@@ -67,6 +67,7 @@ fn create_sound_thing() -> Setting {
     musics.push(song);
     let mut short_effects = Vec::new();
     short_effects.push(PathBuf::from("xplode1").with_extension("ogg"));
+	short_effects.push(PathBuf::form("xplode2").with_extension("ogg"));
 
     Setting {
         effect_dir: sounds_and_music.clone(),
