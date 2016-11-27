@@ -151,23 +151,10 @@ impl<'a> RenderContext<'a> {
     pub fn new(display: &'a Display) -> RenderContext<'a> {
         use num::Complex as C;
         let mut fonts = Fonts::new(display);
-        fonts.load("anka",
-            PathBuf::from("assets")
-                .join("fonts")
-                .join("anka")
-                .join("bold")
-                .with_extension("ttf"));
-
         fonts.load("press_start_2p",
             PathBuf::from("assets")
                 .join("fonts")
                 .join("PressStart2P")
-                .with_extension("ttf"));
-
-        fonts.load("square_sans_serif_7",
-            PathBuf::from("assets")
-                .join("fonts")
-                .join("square_sans_serif_7")
                 .with_extension("ttf"));
 
         let mut textures = HashMap::new();
