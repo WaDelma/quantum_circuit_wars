@@ -9,6 +9,7 @@ extern crate nalgebra;
 extern crate image;
 extern crate arrayvec;
 extern crate quantum_circuit_wars;
+extern crate baal;
 
 use glium::{DisplayBuild, Program};
 use glium::glutin::WindowBuilder;
@@ -16,6 +17,8 @@ use glium::glutin::WindowBuilder;
 use num::{Zero, One};
 
 use graphics::RenderContext;
+
+use baal::Setting;
 
 use quantum_circuit_wars::circuit::{Game, port};
 use quantum_circuit_wars::circuit::gate::{Input, Output, Not};
@@ -50,8 +53,36 @@ enum GameState {
     Splash, Menu, Game, End,
 }
 
+fn create_sound_thing() -> Setting {
+    use baal::effect::DistanceModel;
+    use baal::music::MusicTransition;
+    use std::time::Duration;
+    use std::path::PathBuf;
+    let distance_model = DistanceModel::Linear(0., 1.);
+    let one_second = Duration::new(1, 0);
+    let transition = MusicTransition::Smooth(one_second);
+    let sounds_and_music = PathBuf::from("assets").join("sounds");
+    let mut musics = Vec::new();
+    let song = PathBuf::from("intro").with_extension("ogg");
+    musics.push(song);
+    Setting {
+        effect_dir: sounds_and_music.clone(),
+        music_dir: sounds_and_music.clone(),
+        global_volume: 1.,
+        music_volume: 1.,
+        effect_volume: 1.,
+        distance_model: distance_model,
+        music_transition: transition,
+        short_effects: Vec::new(),
+        persistent_effects: Vec::new(),
+        musics: musics,
+    }
+}
+
 fn main() {
     use self::graphics::renderer;
+    use baal::init;
+    init(&create_sound_thing());
     let mut gv = Game::new();
     let a = gv.add(Input::new(), Node::new(Vect::zero()));
     let b = gv.add(Not::new(), Node::new(Vect::one()));
@@ -63,6 +94,7 @@ fn main() {
     let mut render_context = RenderContext::new(&display);
     let mut ctx = GameContext::new();
     let mut timer = 0;
+    baal::music::play_or_continue(0);
     while ctx.running {
         use self::GameState::*;
         let dims = display.get_framebuffer_dimensions();
@@ -87,6 +119,7 @@ fn main() {
             _ => panic!(),
         }
     }
+    baal::close();
 }
 
 pub struct GameContext {
