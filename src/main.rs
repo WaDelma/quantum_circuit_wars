@@ -65,6 +65,9 @@ fn create_sound_thing() -> Setting {
     let mut musics = Vec::new();
     let song = PathBuf::from("intro").with_extension("ogg");
     musics.push(song);
+    let mut short_effects = Vec::new();
+    short_effects.push(PathBuf::from("xplode1").with_extension("ogg"));
+
     Setting {
         effect_dir: sounds_and_music.clone(),
         music_dir: sounds_and_music.clone(),
@@ -73,7 +76,7 @@ fn create_sound_thing() -> Setting {
         effect_volume: 1.,
         distance_model: distance_model,
         music_transition: transition,
-        short_effects: Vec::new(),
+        short_effects: short_effects,
         persistent_effects: Vec::new(),
         musics: musics,
     }
@@ -95,6 +98,7 @@ fn main() {
     let mut ctx = GameContext::new();
     let mut timer = 0;
     baal::music::play_or_continue(0);
+    baal::effect::short::play_on_listener(0);
     while ctx.running {
         use self::GameState::*;
         let dims = display.get_framebuffer_dimensions();
