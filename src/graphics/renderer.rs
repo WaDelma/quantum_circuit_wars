@@ -7,6 +7,7 @@ use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue, MagnifySamplerF
 use nalgebra::{Vector4, Dot, Norm, Iterable};
 use num::{Complex, Zero};
 use std::convert::AsRef;
+use baal;
 
 use {GameContext, Node, Vect};
 use super::{RenderContext, Vertex, vert};
@@ -197,8 +198,28 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     let string = format!("Alice: {}", round(rctx.score_a, 4));
     rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, -1.8), &string);
 
+    let goal_a = rctx.goal_a.clone();
+    let string = format!("{} {}i", round(goal_a[0].re, 2), round(goal_a[0].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -0.4), &string);
+    let string = format!("{} {}i", round(goal_a[1].re, 2), round(goal_a[1].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -0.5), &string);
+    let string = format!("{} {}i", round(goal_a[2].re, 2), round(goal_a[2].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -0.6), &string);
+    let string = format!("{} {}i", round(goal_a[3].re, 2), round(goal_a[3].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -0.7), &string);
+
     let string = format!("Bob: {}", round(rctx.score_b, 4));
     rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, 0.), &string);
+
+    let goal_b = rctx.goal_b.clone();
+    let string = format!("{} {}i", round(goal_b[0].re, 2), round(goal_b[0].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -1.2), &string);
+    let string = format!("{} {}i", round(goal_b[1].re, 2), round(goal_b[1].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -1.3), &string);
+    let string = format!("{} {}i", round(goal_b[2].re, 2), round(goal_b[2].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -1.4), &string);
+    let string = format!("{} {}i", round(goal_b[3].re, 2), round(goal_b[3].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(1.7, -1.5), &string);
 
     let string = format!("{} {}i", round(state[0].re, 2), round(state[0].im, 2));
     rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0., -0.8), &string);
@@ -213,26 +234,11 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     for i in to_be_removed.into_iter().rev() {
         if rctx.boxes[i].typ.is_big() {
             rctx.state = rctx.boxes[i].typ.mat() * rctx.state.clone();
-            print!("{:?}: (", rctx.boxes[i].typ);
-            for c in rctx.state.as_vector() {
-                print!("{}, ", c);
-            }
-            println!(")");
         } else {
             if rctx.boxes[i].pos.y > 0. {
                 rctx.state = apply_to_qubit(rctx.boxes[i].typ.mat(), 0, 2) * rctx.state.clone();
-                print!("A: {:?}: (", rctx.boxes[i].typ);
-                for c in rctx.state.as_vector() {
-                    print!("{}, ", c);
-                }
-                println!(")");
             } else {
                 rctx.state = apply_to_qubit(rctx.boxes[i].typ.mat(), 1, 2) * rctx.state.clone();
-                print!("B: {:?}: (", rctx.boxes[i].typ);
-                for c in rctx.state.as_vector() {
-                    print!("{}, ", c);
-                }
-                println!(")");
             }
         }
         rctx.boxes.remove(i);
@@ -251,7 +257,8 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     if is_end {
         rctx.line_end -= 0.001;
         if rctx.line_end < -0.5 {
-            panic!();
+            baal::effect::short::play_on_listener(1);
+            ctx.state = Some(::GameState::End);
         }
     }
 }
@@ -344,6 +351,81 @@ pub fn render_lorescreen(display: &Display, render_context: &mut RenderContext, 
         "                There can be only one.                  ");
     render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.7),
         "         Let the quantum circuit wars begin..!          ");
+    target.finish().unwrap();
+    for event in display.poll_events() {
+        match event {
+            Closed => ctx.running = false,
+            KeyboardInput(Pressed, _, _) => {
+                ctx.timer = 0;
+                ctx.state = Some(::GameState::Menu)
+            },
+            _ => {}
+        }
+    }
+}
+
+pub fn render_introscreen(display: &Display, render_context: &mut RenderContext, ctx: &mut GameContext) {
+    use glium::glutin::Event::*;
+    use glium::glutin::ElementState::*;
+    let mut target = display.draw();
+    target.clear_color(0., 0., 0., 1.);
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.5),
+        "Alice can use gates X, Y, Z and H with keys Q, W, S, A.");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.7),
+        "Bob can use gates X, Y, Z and H with keys I, O, L, K.");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.9),
+        "Alice target is ({0}, {1}, {1}, {0})*sqrt(2)");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.1),
+        "Bob target is ({0}, {1}, {-1}, {0})*sqrt(2)");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.3),
+        "Starting state is ({1}, {0}, {0}, {1})*sqrt(2)");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.5),
+        "Alice controls the top qubit and Bob controls the bottom one.");
+    target.finish().unwrap();
+    for event in display.poll_events() {
+        match event {
+            Closed => ctx.running = false,
+            KeyboardInput(Pressed, _, _) => {
+                ctx.timer = 0;
+                ctx.state = Some(::GameState::Game)
+            },
+            _ => {}
+        }
+    }
+}
+
+pub fn render_endscreen(display: &Display, render_context: &mut RenderContext, ctx: &mut GameContext) {
+    use glium::glutin::Event::*;
+    use glium::glutin::ElementState::*;
+    let mut target = display.draw();
+    target.clear_color(0., 0., 0., 1.);
+    if render_context.score_a != render_context.score_b {
+        if render_context.score_a > render_context.score_b {
+            render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -0.9),
+                "ALICE");
+        } else {
+            render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -0.9),
+                "BOB");
+        }
+        render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.2),
+            "IS THE WINNER!");
+
+        if render_context.score_a > render_context.score_b {
+            render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.5),
+                "BOB");
+        } else {
+            render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.5),
+                "ALICE");
+        }
+        render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.8),
+            "IS NO MORE!");
+    } else {
+        render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.5),
+            "NEITHER ALICE NOR BOB");
+        render_context.fonts.draw_text(display, &mut target, "press_start_2p", 30., [1., 0., 0., 1.], Vect::new(0.025, -1.8),
+            "MADE IT!");
+    }
+
     target.finish().unwrap();
     for event in display.poll_events() {
         match event {
