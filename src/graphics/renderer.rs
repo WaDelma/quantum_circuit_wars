@@ -28,6 +28,20 @@ fn output_pos(gen: &Game<Node>, output: Port<u32>, size: f32) -> Vect {
     Vect::new(pos[0] - 0.5 + percent, -(pos[1] + 0.5 + size))
 }
 
+fn upper(typ: super::Type) -> super::ABox {
+    super::ABox {
+        pos: Vect::new(-0.15, 0.3),
+        typ: typ,
+    }
+}
+
+fn lower(typ: super::Type) -> super::ABox {
+    super::ABox {
+        pos: Vect::new(-0.15, -0.5),
+        typ: typ,
+    }
+}
+
 pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &mut GameContext) {
     use glium::draw_parameters::LinearBlendingFactor::*;
     use glium::draw_parameters::BlendingFunction::*;
@@ -39,17 +53,29 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     for event in display.poll_events() {
         match event {
             Closed => ctx.running = false,
-            KeyboardInput(Pressed, _, Some(Key::I)) => {
-                rctx.boxes.push(super::ABox {
-                    pos: Vect::new(-0.15, -0.5),
-                    typ: super::Type::Not,
-                });
-            },
             KeyboardInput(Pressed, _, Some(Key::Q)) => {
-                rctx.boxes.push(super::ABox {
-                    pos: Vect::new(-0.15, 0.3),
-                    typ: super::Type::Not,
-                });
+                rctx.boxes.push(upper(super::Type::Not));
+            },
+            KeyboardInput(Pressed, _, Some(Key::A)) => {
+                rctx.boxes.push(upper(super::Type::H));
+            },
+            KeyboardInput(Pressed, _, Some(Key::W)) => {
+                rctx.boxes.push(upper(super::Type::Y));
+            },
+            KeyboardInput(Pressed, _, Some(Key::S)) => {
+                rctx.boxes.push(upper(super::Type::Z));
+            },
+            KeyboardInput(Pressed, _, Some(Key::I)) => {
+                rctx.boxes.push(lower(super::Type::Not));
+            },
+            KeyboardInput(Pressed, _, Some(Key::K)) => {
+                rctx.boxes.push(lower(super::Type::H));
+            },
+            KeyboardInput(Pressed, _, Some(Key::O)) => {
+                rctx.boxes.push(lower(super::Type::Y));
+            },
+            KeyboardInput(Pressed, _, Some(Key::L)) => {
+                rctx.boxes.push(lower(super::Type::Z));
             },
             _ => {}
         }
@@ -71,6 +97,19 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         smooth: None,
         ..Default::default()
     };
+    let texture = rctx.textures.get("bg").unwrap();
+    let model = rctx.models.get("node").unwrap();
+    let program = rctx.programs.get("texture").unwrap();
+    let splash_matrix =
+        translation(-1., -1.) *
+        scale(2., 2.);
+    let uniforms = uniform! {
+        matrix: *splash_matrix.as_ref(),
+        tex: texture.sampled(),
+        frame: (rctx.frame as i32 / 100) % 8,
+    };
+    target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
+
     let dims = display.get_framebuffer_dimensions();
     let mut lines = Vec::with_capacity(2);
     lines.push(vert(-0.5, -0.4));
@@ -130,23 +169,45 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         } else {
             scale(0.15, 0.2)
         };
-        let program = rctx.programs.get("plain");
-        let program = program.as_ref().expect("Node didn't have shader.");
-        let uniforms = uniform! {
-            matrix: *matrix.as_ref(),
-        };
-        let model = rctx.models.get("node").unwrap();
-        target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+        if b.typ.tex().is_empty() {
+            let program = rctx.programs.get("plain");
+            let program = program.as_ref().expect("Node didn't have shader.");
+            let uniforms = uniform! {
+                matrix: *matrix.as_ref(),
+            };
+            let model = rctx.models.get("node").unwrap();
+            target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+        } else {
+            let program = rctx.programs.get("texture");
+            let program = program.as_ref().expect("Node didn't have shader.");
+            let texture = rctx.textures.get(b.typ.tex()).unwrap();
+            let uniforms = uniform! {
+                matrix: *matrix.as_ref(),
+                tex: texture.sampled(),
+                frame: 0,
+            };
+            let model = rctx.models.get("node").unwrap();
+            target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
+        }
     }
     let state = Vector4::new(rctx.state[(0, 0)], rctx.state[(1, 0)], rctx.state[(2, 0)], rctx.state[(3, 0)]);
     rctx.score_a = calc_score(state.clone(), rctx.goal_a.clone());
     rctx.score_b = calc_score(state, rctx.goal_b.clone());
 
-    let string = format!("Alice: {}", rctx.score_a);
+    let string = format!("Alice: {}", round(rctx.score_a, 4));
     rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, -1.8), &string);
 
-    let string = format!("Bob: {}", rctx.score_b);
+    let string = format!("Bob: {}", round(rctx.score_b, 4));
     rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, 0.), &string);
+
+    let string = format!("{} {}i", round(state[0].re, 2), round(state[0].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0., -0.8), &string);
+    let string = format!("{} {}i", round(state[1].re, 2), round(state[1].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0., -0.9), &string);
+    let string = format!("{} {}i", round(state[2].re, 2), round(state[2].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0., -1.), &string);
+    let string = format!("{} {}i", round(state[3].re, 2), round(state[3].im, 2));
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0., -1.1), &string);
 
     target.finish().unwrap();
     for i in to_be_removed.into_iter().rev() {
@@ -195,6 +256,17 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     }
 }
 
+fn round(x: f64, digits: i32) -> f64 {
+    let digits = 10f64.powi(digits);
+    (x * digits).round() / digits
+}
+
+#[test]
+fn round_test() {
+    assert_eq!(6.28, round(6.2831, 2));
+    assert_eq!(0.12346, round(0.123456789, 5));
+}
+
 fn calc_score(state: Vector4<Complex<f64>>, goal: Vector4<Complex<f64>>) -> f64 {
     state.iter()
         .zip(goal.iter())
@@ -234,7 +306,6 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
-
     };
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
 

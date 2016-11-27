@@ -116,6 +116,20 @@ impl Type {
             Ident4 => DMatrix::new_identity(4),
         }
     }
+
+    pub fn tex(&self) -> &'static str {
+        use self::Type::*;
+        match *self {
+            Not => "x",
+            Y => "y",
+            Z => "z",
+            H => "h",
+            CNotA => "cnota",
+            CNotB => "cnotb",
+            Ident2 => "",
+            Ident4 => "",
+        }
+    }
 }
 
 pub struct ABox {
@@ -160,9 +174,24 @@ impl<'a> RenderContext<'a> {
 
         let (string, texture) = load_texture(display, "splash", "splashscreen");
         textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "bg", "background_720");
+        textures.insert(string, texture);
         let (string, texture) = load_texture(display, "alice", "ALICE_player");
         textures.insert(string, texture);
         let (string, texture) = load_texture(display, "bob", "BOB_player");
+        textures.insert(string, texture);
+
+        let (string, texture) = load_texture(display, "x", "x");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "y", "y");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "z", "z");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "h", "h");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "cnota", "cnota");
+        textures.insert(string, texture);
+        let (string, texture) = load_texture(display, "cnotb", "cnotb");
         textures.insert(string, texture);
 
         let mut models = HashMap::new();
