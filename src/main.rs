@@ -47,7 +47,7 @@ impl Node {
 
 #[derive(Clone, Copy)]
 enum GameState {
-    Splash, Menu, Game, End,
+    Splash, Lore, Menu, Game, End,
 }
 
 fn main() {
@@ -62,7 +62,6 @@ fn main() {
     let display = WindowBuilder::new().build_glium().unwrap();
     let mut render_context = RenderContext::new(&display);
     let mut ctx = GameContext::new();
-    let mut timer = 0;
     while ctx.running {
         use self::GameState::*;
         let dims = display.get_framebuffer_dimensions();
@@ -74,10 +73,18 @@ fn main() {
         );
         match ctx.state {
             Some(Splash) => {
-                renderer::render_splashscreen(&display, &mut render_context);
-                timer += 1;
-                if timer > 0 * 60 * 10 {
-                    timer = 0;
+                renderer::render_splashscreen(&display, &mut render_context, &mut ctx);
+                ctx.timer += 1;
+                if ctx.timer > 60 * 50 {
+                    ctx.timer = 0;
+                    ctx.state = Some(Lore);
+                }
+            },
+            Some(Lore) => {
+                renderer::render_lorescreen(&display, &mut render_context, &mut ctx);
+                ctx.timer += 1;
+                if ctx.timer > 60 * 50 {
+                    ctx.timer = 0;
                     ctx.state = Some(Game);
                 }
             },
@@ -97,6 +104,7 @@ pub struct GameContext {
     text: String,
     node_width: f32,
     port_size: f32,
+    timer: usize,
 }
 
 impl GameContext {
@@ -109,6 +117,7 @@ impl GameContext {
             text: String::new(),
             node_width: 1.,
             port_size: 0.1,
+            timer: 0,
         }
     }
 }

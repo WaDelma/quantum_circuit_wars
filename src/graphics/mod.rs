@@ -78,6 +78,8 @@ pub struct RenderContext<'a> {
     pub state: DMatrix<Complex<f64>>,
     pub goal_a: Vector4<Complex<f64>>,
     pub goal_b: Vector4<Complex<f64>>,
+    pub score_a: f64,
+    pub score_b: f64,
 }
 
 #[derive(Debug)]
@@ -252,6 +254,8 @@ impl<'a> RenderContext<'a> {
             state: DMatrix::from_column_vector(4, 1, &[C::one(), C::zero(), C::zero(), C::one()]) * C::new(1. / 2f64.sqrt(), 0.),
             goal_a: Vector4::new(C::zero(), C::one(), C::one(), C::zero()) * C::new(1. / 2f64.sqrt(), 0.),
             goal_b: Vector4::new(C::zero(), C::one(), -C::one(), C::zero()) * C::new(1. / 2f64.sqrt(), 0.),
+            score_a: 0.,
+            score_b: 0.,
         }
     }
 }

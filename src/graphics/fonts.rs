@@ -170,33 +170,7 @@ impl<'a> Fonts<'a> {
         let (w, h) = (w as f32, h as f32);
         let origin = point(pos[0], pos[1]);
         let font = self.fonts.get(font).expect(&format!("Font {} didn't exist.", font));
-        let (glyphs, bg) = self.layout(&font.0, Scale::uniform(size * self.dpi_factor), text);
-        if let Some(bg) = bg {
-            let min = vector(bg.min.x as f32 / w, -bg.min.y as f32 / h) - vector(0.5, -0.5);
-            let max = vector(bg.max.x as f32 / w, -bg.max.y as f32 / h) - vector(0.5, -0.5);
-            let pos = Rect {
-                min: origin + min * 2.,
-                max: origin + max * 2.,
-            };
-            let vertices = VertexBuffer::new(display, &[
-                vert(pos.min.x, pos.max.y),
-                vert(pos.min.x, pos.min.y),
-                vert(pos.max.x, pos.min.y),
-                vert(pos.max.x, pos.min.y),
-                vert(pos.max.x, pos.max.y),
-                vert(pos.min.x, pos.max.y),
-            ]).unwrap();
-            let uniforms = uniform! {
-                color: [1f32; 4],
-            };
-            target.draw(&vertices,
-                        NoIndices(PrimitiveType::TrianglesList),
-                        &self.program_bg, &uniforms,
-                        &DrawParameters {
-                            blend: Blend::alpha_blending(),
-                            ..Default::default()
-                        }).unwrap();
-        }
+        let (glyphs, _bg) = self.layout(&font.0, Scale::uniform(size * self.dpi_factor), text);
 
         for glyph in &glyphs {
             self.cache.queue_glyph(font.1, glyph.clone());

@@ -96,8 +96,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         matrix: *matrix.as_ref(),
         frame: rctx.alice_frame / 100,
         tex: texture.sampled()
-            .magnify_filter(MagnifySamplerFilter::Nearest)
-            .minify_filter(MinifySamplerFilter::Nearest),
     };
     let model = rctx.models.get("frame").unwrap();
     target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
@@ -113,8 +111,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         matrix: *matrix.as_ref(),
         frame: rctx.bob_frame / 100,
         tex: texture.sampled()
-            .magnify_filter(MagnifySamplerFilter::Nearest)
-            .minify_filter(MinifySamplerFilter::Nearest),
     };
     let model = rctx.models.get("frame").unwrap();
     target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
@@ -142,6 +138,16 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         let model = rctx.models.get("node").unwrap();
         target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
     }
+    let state = Vector4::new(rctx.state[(0, 0)], rctx.state[(1, 0)], rctx.state[(2, 0)], rctx.state[(3, 0)]);
+    rctx.score_a = calc_score(state.clone(), rctx.goal_a.clone());
+    rctx.score_b = calc_score(state, rctx.goal_b.clone());
+
+    let string = format!("Alice: {}", rctx.score_a);
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, -1.8), &string);
+
+    let string = format!("Bob: {}", rctx.score_b);
+    rctx.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, 0.), &string);
+
     target.finish().unwrap();
     for i in to_be_removed.into_iter().rev() {
         if rctx.boxes[i].typ.is_big() {
@@ -168,9 +174,6 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
                 println!(")");
             }
         }
-        let state = Vector4::new(rctx.state[(0, 0)], rctx.state[(1, 0)], rctx.state[(2, 0)], rctx.state[(3, 0)]);
-        println!("A score: {}", calc_score(state.clone(), rctx.goal_a.clone()));
-        println!("B score: {}", calc_score(state, rctx.goal_b.clone()));
         rctx.boxes.remove(i);
     }
     rctx.frame += 1;
@@ -199,7 +202,9 @@ fn calc_score(state: Vector4<Complex<f64>>, goal: Vector4<Complex<f64>>) -> f64 
         .fold(Complex::zero(), |a, b| a + b).norm_sqr()
 }
 
-pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext) {
+pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext, ctx: &mut GameContext) {
+    use glium::glutin::Event::*;
+    use glium::glutin::ElementState::*;
     use glium::draw_parameters::LinearBlendingFactor::*;
     use glium::draw_parameters::BlendingFunction::*;
     use math::translation;
@@ -229,8 +234,6 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let uniforms = uniform! {
         matrix: *splash_matrix.as_ref(),
         tex: texture.sampled()
-            .magnify_filter(MagnifySamplerFilter::Nearest)
-            .minify_filter(MinifySamplerFilter::Nearest),
 
     };
     target.draw(&model.vertices, &model.indices, program, &uniforms, &draw_params);
@@ -238,7 +241,51 @@ pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext
     let string = "Press ANY-key to continue!";
     render_context.fonts.draw_text(display, &mut target, "press_start_2p", 20., [1., 0., 0., 1.], Vect::new(0.45, -1.8), string);
     target.finish().unwrap();
+
+    for event in display.poll_events() {
+        match event {
+            Closed => ctx.running = false,
+            KeyboardInput(Pressed, _, _) => {
+                ctx.timer = 0;
+                ctx.state = Some(::GameState::Lore)
+            },
+            _ => {}
+        }
+    }
 }
+
+pub fn render_lorescreen(display: &Display, render_context: &mut RenderContext, ctx: &mut GameContext) {
+    use glium::glutin::Event::*;
+    use glium::glutin::ElementState::*;
+    let mut target = display.draw();
+    target.clear_color(0., 0., 0., 1.);
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.5),
+        "     After years of playing quantum games together      ");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.7),
+        "Alice and Bob have finally grown fed up with each other.");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -0.9),
+        "               To resolve their conflict                ");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.1),
+        "        they have agreed to play one final game,        ");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.3),
+        "               betting their very lives.                ");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.5),
+        "                There can be only one.                  ");
+    render_context.fonts.draw_text(display, &mut target, "press_start_2p", 18., [1., 0., 0., 1.], Vect::new(0.025, -1.7),
+        "         Let the quantum circuit wars begin..!          ");
+    target.finish().unwrap();
+    for event in display.poll_events() {
+        match event {
+            Closed => ctx.running = false,
+            KeyboardInput(Pressed, _, _) => {
+                ctx.timer = 0;
+                ctx.state = Some(::GameState::Game)
+            },
+            _ => {}
+        }
+    }
+}
+
 
 fn draw<A, B>(target: &mut Frame, rctx: &RenderContext, model: &str, program: &str, uniforms: &UniformsStorage<A, B>, draw_params: &DrawParameters)
     where A: AsUniformValue,
