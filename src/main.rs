@@ -82,11 +82,9 @@ fn main() {
                 }
             },
             Some(Game) => {
-                renderer::render(&display, &mut render_context, gv.view(), &ctx);
+                renderer::render(&display, &mut render_context, gv.view(), &mut ctx);
             }
             _ => panic!(),
-        }
-        if let Some(Splash) = ctx.state {
         }
     }
 }

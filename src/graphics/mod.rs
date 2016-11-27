@@ -12,13 +12,16 @@ use glium::texture::Texture2d as Texture;
 use glium::backend::Facade;
 use glium::texture::srgb_texture2d::SrgbTexture2d;
 
-use nalgebra::Eye;
-
 use image::{GenericImage, load, PNG};
 
 use self::fonts::Fonts;
 use math::*;
 use {Mat, Vect};
+
+use nalgebra::{DMatrix, Vector4, Eye};
+use num::{Complex, One, Zero};
+
+use quantum_circuit_wars::*;
 
 pub mod renderer;
 pub mod fonts;
@@ -68,22 +71,47 @@ pub struct RenderContext<'a> {
     pub alice_frame: i32,
     pub bob_frame: i32,
     pub boxes: Vec<ABox>,
+    pub frame: usize,
+    pub level: Vec<(usize, ABox)>,
+    pub big_block_target: usize,
+    pub line_end: f32,
+    pub state: DMatrix<Complex<f64>>,
+    pub goal_a: Vector4<Complex<f64>>,
+    pub goal_b: Vector4<Complex<f64>>,
 }
 
+#[derive(Debug)]
 pub enum Type {
     Not,
     Y,
     Z,
     H,
-    CNot,
+    CNotA,
+    CNotB,
+    Ident2,
+    Ident4,
 }
 
 impl Type {
     pub fn is_big(&self) -> bool {
         use self::Type::*;
         match *self {
-            CNot => true,
+            CNotA | CNotB | Ident4 => true,
             _ => false,
+        }
+    }
+
+    pub fn mat(&self) -> DMatrix<Complex<f64>> {
+        use self::Type::*;
+        match *self {
+            Not => not(),
+            Y => pauli_y(),
+            Z => pauli_z(),
+            H => hadamard(),
+            CNotA => control_not(0, 1, 2),
+            CNotB => control_not(1, 0, 2),
+            Ident2 => DMatrix::new_identity(2),
+            Ident4 => DMatrix::new_identity(4),
         }
     }
 }
@@ -105,6 +133,7 @@ pub fn load_texture<F: Facade, S: Into<String>, P: Into<PathBuf>>(facade: &F, na
 
 impl<'a> RenderContext<'a> {
     pub fn new(display: &'a Display) -> RenderContext<'a> {
+        use num::Complex as C;
         let mut fonts = Fonts::new(display);
         fonts.load("anka",
             PathBuf::from("assets")
@@ -212,7 +241,17 @@ impl<'a> RenderContext<'a> {
             textures: textures,
             alice_frame: 0,
             bob_frame: 0,
+            frame: 0,
             boxes: vec![],
+            level: vec![
+                (600, ABox{pos: Vect::new(1.2, -0.5), typ: Type::CNotA}),
+                (1800, ABox{pos: Vect::new(1.2, -0.5), typ: Type::Ident4}),
+                (1800, ABox{pos: Vect::new(1.2, -0.5), typ: Type::CNotB})],
+            big_block_target: 600,
+            line_end: 1.,
+            state: DMatrix::from_column_vector(4, 1, &[C::one(), C::zero(), C::zero(), C::one()]) * C::new(1. / 2f64.sqrt(), 0.),
+            goal_a: Vector4::new(C::zero(), C::one(), C::one(), C::zero()) * C::new(1. / 2f64.sqrt(), 0.),
+            goal_b: Vector4::new(C::zero(), C::one(), -C::one(), C::zero()) * C::new(1. / 2f64.sqrt(), 0.),
         }
     }
 }

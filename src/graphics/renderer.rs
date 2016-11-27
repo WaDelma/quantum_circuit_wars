@@ -2,16 +2,16 @@ use glium::{Frame, VertexBuffer, Blend, Surface};
 use glium::Display;
 use glium::index::{IndexBuffer, PrimitiveType};
 use glium::draw_parameters::DrawParameters;
-use glium::draw_parameters::LinearBlendingFactor::*;
-use glium::draw_parameters::BlendingFunction::*;
 use glium::uniforms::{Uniforms, UniformsStorage, AsUniformValue, MagnifySamplerFilter, MinifySamplerFilter};
 
-use nalgebra::Norm;
+use nalgebra::{Vector4, Dot, Norm, Iterable};
+use num::{Complex, Zero};
 use std::convert::AsRef;
 
 use {GameContext, Node, Vect};
 use super::{RenderContext, Vertex, vert};
 use math::*;
+use quantum_circuit_wars::*;
 use quantum_circuit_wars::circuit::{GameView, Game, Port};
 
 fn input_pos(gen: &Game<Node>, input: Port<u32>, _size: f32) -> Vect {
@@ -28,7 +28,32 @@ fn output_pos(gen: &Game<Node>, output: Port<u32>, size: f32) -> Vect {
     Vect::new(pos[0] - 0.5 + percent, -(pos[1] + 0.5 + size))
 }
 
-pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &GameContext) {
+pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>, ctx: &mut GameContext) {
+    use glium::draw_parameters::LinearBlendingFactor::*;
+    use glium::draw_parameters::BlendingFunction::*;
+    use glium::glutin::Event::*;
+    use glium::glutin::ElementState::*;
+    use glium::glutin::MouseButton as Mouse;
+    use glium::glutin::VirtualKeyCode as Key;
+    use glium::glutin::MouseScrollDelta;
+    for event in display.poll_events() {
+        match event {
+            Closed => ctx.running = false,
+            KeyboardInput(Pressed, _, Some(Key::I)) => {
+                rctx.boxes.push(super::ABox {
+                    pos: Vect::new(-0.15, -0.5),
+                    typ: super::Type::Not,
+                });
+            },
+            KeyboardInput(Pressed, _, Some(Key::Q)) => {
+                rctx.boxes.push(super::ABox {
+                    pos: Vect::new(-0.15, 0.3),
+                    typ: super::Type::Not,
+                });
+            },
+            _ => {}
+        }
+    }
     let mut target = display.draw();
     target.clear_color(0.0157, 0.0173, 0.0204, 1.);
     let draw_params = DrawParameters {
@@ -47,58 +72,11 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         ..Default::default()
     };
     let dims = display.get_framebuffer_dimensions();
-    // for (_, data) in world.iter() {
-    //     let pos = flip_y(data.pos);
-    //     let corner_pos = pos - Vect::new(ctx.node_width, ctx.node_width) * 0.5;
-    //     let matrix = rctx.cam * translation(corner_pos.x, corner_pos.y);
-    //     let uniforms = uniform! {
-    //         matrix: *matrix.as_ref(),
-    //     };
-    //     draw(&mut target, &rctx, "back", "plain", &uniforms, &draw_params);
-    //     let matrix = rctx.cam * translation(corner_pos.x + 0.05, corner_pos.y + 0.05) * scale(0.9, 0.9);
-    //     let program = rctx.programs.get("plain");
-    //     let program = program.as_ref().expect("Node didn't have shader.");
-    //     let uniforms = uniform! {
-    //         matrix: *matrix.as_ref(),
-    //     };
-    //     let model = rctx.models.get("node").unwrap();
-    //     target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
-    //
-    //     let mut draw = |things: &[_]| {
-    //         for p in things {
-    //             let p = pos + flip_y(*p) - Vect::new(ctx.port_size, ctx.port_size) * 0.5;
-    //             let matrix = rctx.cam * translation(p.x, p.y) * scale(ctx.port_size, ctx.port_size);
-    //             let uniforms = uniform! {
-    //                 matrix: *matrix.as_ref(),
-    //             };
-    //             draw(&mut target, &rctx, "node", "plain", &uniforms, &draw_params);
-    //         }
-    //     };
-    //     draw(&data.outputs.borrow());
-    //     draw(&data.inputs.borrow());
-    // }
-    // let mut lines = Vec::with_capacity(world.connections());
-    // for (src, trg) in world.iter_connections() {
-    //     let src = output_pos(&world, src, ctx.port_size);
-    //     let trg = input_pos(&world, trg, ctx.port_size);
-    //     let trg = Vect::new(trg[0], trg[1] + ctx.port_size);
-    //     add_arrow(&mut lines, src, trg, 0.1, 0.1 * TAU);
-    // }
-    // let vertices = VertexBuffer::new(display, &lines).unwrap();
-    // let indices = (0..lines.len() as u32).collect::<Vec<_>>();
-    // let indices = IndexBuffer::new(display, PrimitiveType::LinesList, &indices).unwrap();
-    // let matrix = rctx.cam * translation(0., 0.);
-    // let uniforms = uniform! {
-    //     matrix: *matrix.as_ref(),
-    // };
-    // let program = rctx.programs.get("plain").unwrap();
-    // target.draw(&vertices, &indices, program, &uniforms, &draw_params).unwrap();
-
     let mut lines = Vec::with_capacity(2);
     lines.push(vert(-0.5, -0.4));
-    lines.push(vert(1., -0.4));
+    lines.push(vert(rctx.line_end, -0.4));
     lines.push(vert(-0.5, 0.4));
-    lines.push(vert(1., 0.4));
+    lines.push(vert(rctx.line_end, 0.4));
     let vertices = VertexBuffer::new(display, &lines).unwrap();
     let indices = (0..lines.len() as u32).collect::<Vec<_>>();
     let indices = IndexBuffer::new(display, PrimitiveType::LinesList, &indices).unwrap();
@@ -143,27 +121,18 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
     rctx.bob_frame += 1;
     rctx.bob_frame %= 800;
 
-    if rctx.bob_frame == 400 {
-        rctx.boxes.push(super::ABox {
-            pos: Vect::new(0., -0.5),
-            typ: super::Type::Not,
-        });
-        rctx.boxes.push(super::ABox {
-            pos: Vect::new(0., 0.3),
-            typ: super::Type::Y,
-        });
-    }
-
     let mut to_be_removed = vec![];
+    let mut is_end = rctx.level.is_empty();
     for (i, b) in rctx.boxes.iter_mut().enumerate() {
         b.pos.x -= 0.001;
         if b.pos.x < -0.70 {
             to_be_removed.push(i);
         }
         let mut matrix = translation(b.pos.x, b.pos.y) * if b.typ.is_big() {
-            scale(0.1, 1.)
+            is_end = false;
+            scale(0.15, 1.)
         } else {
-            scale(0.1, 0.2)
+            scale(0.15, 0.2)
         };
         let program = rctx.programs.get("plain");
         let program = program.as_ref().expect("Node didn't have shader.");
@@ -173,14 +142,66 @@ pub fn render(display: &Display, rctx: &mut RenderContext, world: GameView<Node>
         let model = rctx.models.get("node").unwrap();
         target.draw(&model.vertices, &model.indices, &program, &uniforms, &draw_params).expect("Drawing node failed.");
     }
+    target.finish().unwrap();
     for i in to_be_removed.into_iter().rev() {
+        if rctx.boxes[i].typ.is_big() {
+            rctx.state = rctx.boxes[i].typ.mat() * rctx.state.clone();
+            print!("{:?}: (", rctx.boxes[i].typ);
+            for c in rctx.state.as_vector() {
+                print!("{}, ", c);
+            }
+            println!(")");
+        } else {
+            if rctx.boxes[i].pos.y > 0. {
+                rctx.state = apply_to_qubit(rctx.boxes[i].typ.mat(), 0, 2) * rctx.state.clone();
+                print!("A: {:?}: (", rctx.boxes[i].typ);
+                for c in rctx.state.as_vector() {
+                    print!("{}, ", c);
+                }
+                println!(")");
+            } else {
+                rctx.state = apply_to_qubit(rctx.boxes[i].typ.mat(), 1, 2) * rctx.state.clone();
+                print!("B: {:?}: (", rctx.boxes[i].typ);
+                for c in rctx.state.as_vector() {
+                    print!("{}, ", c);
+                }
+                println!(")");
+            }
+        }
+        let state = Vector4::new(rctx.state[(0, 0)], rctx.state[(1, 0)], rctx.state[(2, 0)], rctx.state[(3, 0)]);
+        println!("A score: {}", calc_score(state.clone(), rctx.goal_a.clone()));
+        println!("B score: {}", calc_score(state, rctx.goal_b.clone()));
         rctx.boxes.remove(i);
     }
+    rctx.frame += 1;
 
-    target.finish().unwrap();
+    if rctx.frame > rctx.big_block_target {
+        if let Some(b) = rctx.level.pop() {
+            rctx.boxes.push(b.1);
+            if let Some(b) = rctx.level.last() {
+                rctx.big_block_target = rctx.frame + b.0;
+            }
+        }
+    }
+
+    if is_end {
+        rctx.line_end -= 0.001;
+        if rctx.line_end < -0.5 {
+            panic!();
+        }
+    }
+}
+
+fn calc_score(state: Vector4<Complex<f64>>, goal: Vector4<Complex<f64>>) -> f64 {
+    state.iter()
+        .zip(goal.iter())
+        .map(|(a, b)| a * b)
+        .fold(Complex::zero(), |a, b| a + b).norm_sqr()
 }
 
 pub fn render_splashscreen(display: &Display, render_context: &mut RenderContext) {
+    use glium::draw_parameters::LinearBlendingFactor::*;
+    use glium::draw_parameters::BlendingFunction::*;
     use math::translation;
     let mut target = display.draw();
     target.clear_color(0., 0., 0., 1.);

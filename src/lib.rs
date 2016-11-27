@@ -66,7 +66,7 @@ pub fn apply_to_qubit(gate: DMatrix<Complex<f64>>, index: usize, amount: usize) 
     let mut vec: Vec<_> = ::std::iter::repeat(DMatrix::new_identity(2))
         .take(amount - 1)
         .collect();
-    vec.insert(index - 1, gate);
+    vec.insert(index, gate);
     kronecker_product(&vec[..])
 }
 
@@ -212,14 +212,14 @@ fn not_gate_test() {
     let q123 = kronecker_product(&[q1.mat().clone(), q2.mat().clone(), q3.mat().clone()]);
     println!("{:?}", q123);
 
+    let asdads = apply_to_qubit(not(), 0, 3);
+    println!("{:?}", asdads * q123.clone());
+
     let asdads = apply_to_qubit(not(), 1, 3);
     println!("{:?}", asdads * q123.clone());
 
-    let asdads = apply_to_qubit(not(), 2, 3);
-    println!("{:?}", asdads * q123.clone());
-
     let sqrt5_2 = 2. * 5f64.sqrt();
-    let n3 = apply_to_qubit(not(), 3, 3);
+    let n3 = apply_to_qubit(not(), 2, 3);
     let r = n3 * q123.clone();
     let rr = DMatrix::from_column_vector(8, 1, &[
             C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
@@ -229,13 +229,13 @@ fn not_gate_test() {
     assert!(r.as_vector().iter().zip(rr.as_vector()).all(|(a, b)| (a - b).norm() < 0.000001));
     // println!("{:?}", asdads * q123.clone());
 
-    let dasd = apply_to_qubit(hadamard(), 2, 3);
-    let asd = apply_to_qubit(not(), 3, 3);
+    let dasd = apply_to_qubit(hadamard(), 1, 3);
+    let asd = apply_to_qubit(not(), 2, 3);
     println!("{:?}", dasd * asd * q123.clone());
 
     let sqrt5_2 = 2. * 5f64.sqrt();
-    let h2 = apply_to_qubit(hadamard(), 2, 3);
-    let n3 = apply_to_qubit(not(), 3, 3);
+    let h2 = apply_to_qubit(hadamard(), 1, 3);
+    let n3 = apply_to_qubit(not(), 2, 3);
     let r = h2.clone() * h2 * n3 * q123.clone();
     let rr = DMatrix::from_column_vector(8, 1, &[
             C::new(0., 1. / sqrt5_2), C::new(0., 3. / sqrt5_2),
@@ -257,29 +257,29 @@ fn apply_to_qubit_test() {
         0., 0., 1., 0., 0., 0., 0., 0.,
         0., 0., 0., 1., 0., 0., 0., 0.,
         ].iter().map(|n| Complex::new(*n, 0.)).collect::<Vec<_>>()[..]);
+    assert_eq!(r, apply_to_qubit(not(), 0, 3));
+    let r = DMatrix::from_column_vector(8, 8, &[
+        0., 0., 1., 0., 0., 0., 0., 0.,
+        0., 0., 0., 1., 0., 0., 0., 0.,
+        1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 1., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 1., 0.,
+        0., 0., 0., 0., 0., 0., 0., 1.,
+        0., 0., 0., 0., 1., 0., 0., 0.,
+        0., 0., 0., 0., 0., 1., 0., 0.,
+        ].iter().map(|n| Complex::new(*n, 0.)).collect::<Vec<_>>()[..]);
     assert_eq!(r, apply_to_qubit(not(), 1, 3));
     let r = DMatrix::from_column_vector(8, 8, &[
-        0., 0., 1., 0., 0., 0., 0., 0.,
-        0., 0., 0., 1., 0., 0., 0., 0.,
-        1., 0., 0., 0., 0., 0., 0., 0.,
         0., 1., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 1., 0.,
-        0., 0., 0., 0., 0., 0., 0., 1.,
-        0., 0., 0., 0., 1., 0., 0., 0.,
+        1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 1., 0., 0., 0., 0.,
+        0., 0., 1., 0., 0., 0., 0., 0.,
         0., 0., 0., 0., 0., 1., 0., 0.,
+        0., 0., 0., 0., 1., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 1.,
+        0., 0., 0., 0., 0., 0., 1., 0.,
         ].iter().map(|n| Complex::new(*n, 0.)).collect::<Vec<_>>()[..]);
     assert_eq!(r, apply_to_qubit(not(), 2, 3));
-    let r = DMatrix::from_column_vector(8, 8, &[
-        0., 1., 0., 0., 0., 0., 0., 0.,
-        1., 0., 0., 0., 0., 0., 0., 0.,
-        0., 0., 0., 1., 0., 0., 0., 0.,
-        0., 0., 1., 0., 0., 0., 0., 0.,
-        0., 0., 0., 0., 0., 1., 0., 0.,
-        0., 0., 0., 0., 1., 0., 0., 0.,
-        0., 0., 0., 0., 0., 0., 0., 1.,
-        0., 0., 0., 0., 0., 0., 1., 0.,
-        ].iter().map(|n| Complex::new(*n, 0.)).collect::<Vec<_>>()[..]);
-    assert_eq!(r, apply_to_qubit(not(), 3, 3));
 }
 
 #[test]
