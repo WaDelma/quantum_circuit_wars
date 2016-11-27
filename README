@@ -1,0 +1,6 @@
+This is a game made for Quantum Jam 2016.
+
+It was developed using Rust 1.13.0 which is needed to build it.
+On windows there might be problems with it's dependencies that use GCC and MSVC version of Rust is recommended. 
+
+The code is licensed under MIT-lincese and assets are under Creative Commons Attribute_NonCommersional_ShareAlike v4.0 International.
